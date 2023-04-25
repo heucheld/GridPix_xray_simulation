@@ -365,49 +365,47 @@ int main(int argc, char *argv[]){
     string dateb = date();
     string timeb = time();
 
-    int runnumber = 1000;
-
     // Initialize the pixelmatrix
     double pixelsize = 0.0055;
     const int pixel = 256; //in one direction
     int hits[pixel][pixel];
 
-    // parameters for the simulation - should be arguments in the future
-    string gas1 = "He";
-    string gas2 = "DME";
-    double percentage1 = 80.0;
-    double percentage2 = 20.0;
-    double temperature = 20.0;
-    double pressure = 787.6;
-    double efield = 700.0;
-    double energy = 10000.0;
-    int job = 0;
+    bool create_gasfile = true;
+    string gasfile;
 
-    cout << "Generate gasfile" << endl;
-    generateGasFile("He_DME_80_20_1_05bar.gas", gas1, percentage1, gas2, percentage2, pressure, 273.15+temperature, 20, 400, 1000, 40, 0,0,0);
-
-    if (argc < 2 || argc > 2){
-        job = 0;
+    if (argc < 10){
+        cout << "There are missing some arguments. The command is ./diffusion <path> <job> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field>" << endl;
+        cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
+        return 1;
+    }
+    if (argc == 11){
+        gasfile = argv[1];
+        create_gasfile = false;
     }
     else{
-        if (argv[1][1] - '0' >= 0){
-            job = argv[1][1] - '0';
-            job += 10 * (argv[1][0] - '0');
-        }
-        else
-        {
-            job += argv[1][0] - '0';
-        }
+        create_gasfile = true;
+    }
+    int job = atoi(argv[argc - 9]);
+    double energy = atof(argv[argc - 8]);
+    string gas1 = argv[argc - 7];
+    string gas2 = argv[argc - 6];
+    double percentage1 = atof(argv[argc - 5]);
+    double percentage2 = atof(argv[argc - 4]);
+    double temperature = atof(argv[argc - 3]);
+    double pressure = atof(argv[argc - 2]);
+    double efield = atof(argv[argc - 1]);
+
+    if (create_gasfile){
+        cout << "Generate gasfile" << endl;
+        gasfile = gas1 + "_" + gas2 + "_" + to_string(int(percentage1)) + "_" + to_string(int(percentage2)) + "_" + to_string(int(pressure)) + "torr_" + to_string(int(temperature)) + "C_" + to_string(int(efield)) + "Vcm.gas";
+        generateGasFile(gasfile, gas1, percentage1, gas2, percentage2, pressure, 273.15+temperature, 20, efield-300, efield+300, 40, 0,0,0);
     }
 
-    // Create a runnumber based on the energy and a job number
-    runnumber = (int)energy + job;
-
     // Create the needed folders
-    string dir = "Run_" + fixedLength(runnumber) + "_" + date() + "_" + time();
+    string dir = "Run_" + fixedLength(job) + "_" + date() + "_" + time();
     mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     makeconfig(dir);
-    string degrad_dir = "Run_" + fixedLength(runnumber) + "_" + date() + "_" + time() + "_degrad";
+    string degrad_dir = "Run_" + fixedLength(job) + "_" + date() + "_" + time() + "_degrad";
     mkdir(degrad_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
     // Make a gas medium.
@@ -415,7 +413,7 @@ int main(int argc, char *argv[]){
     gas->SetComposition(gas1, percentage1, gas2, percentage2);
     gas->SetTemperature(273.15+temperature);
     gas->SetPressure(pressure);
-    gas->LoadGasFile("He_DME_80_20_1_05bar.gas");
+    gas->LoadGasFile(gasfile);
     gas->Initialise(true);
 
     // Create a cylinder in which the x-rays can convert.
@@ -463,7 +461,7 @@ int main(int argc, char *argv[]){
         double angle = 0;
 
         // Generate the filenames for the current event
-        string filename = "/run_" + fixedLength(runnumber) + "_data_" + fixedLength(event) + "_" + date() + "_" + time();
+        string filename = "/run_" + fixedLength(job) + "_data_" + fixedLength(event) + "_" + date() + "_" + time();
         string in_file = degrad_dir + filename + ".in";
 
         // Create the degrad in file and run degrad with it
@@ -523,7 +521,7 @@ int main(int argc, char *argv[]){
         printf("DEGRAD: n10    = %d \n", n10);
 
         // Store the truth information of the event in a file
-        string photoelectron_file = "run_" + fixedLength(runnumber) + "_" + dateb + "_" + timeb + "_photoelectrons.txt";
+        string photoelectron_file = "run_" + fixedLength(job) + "_" + dateb + "_" + timeb + "_photoelectrons.txt";
         string photoelectron_content = to_string(event) + "\t" + to_string(energy) + "\t" + to_string(angle) + "\t" + to_string(position) + "\t" + to_string(nclus);
         write_text_to_position_file(photoelectron_file.c_str(), photoelectron_content.c_str());
 
@@ -576,7 +574,7 @@ int main(int argc, char *argv[]){
 
         // Close the degrad output file and move it in the runfolder with a new name based on the eventnumber
         in.close();
-        string cmd_degrad_out = "cp DEGRAD.OUT " + degrad_dir + "/run_" + fixedLength(runnumber) + "_data_" + fixedLength(event) + "_" + date() + "_" + time() + ".OUT";
+        string cmd_degrad_out = "cp DEGRAD.OUT " + degrad_dir + "/run_" + fixedLength(job) + "_data_" + fixedLength(event) + "_" + date() + "_" + time() + ".OUT";
         cout << cmd_degrad_out << endl;
         string err = "";
         err = exec(cmd_degrad_out.c_str());
