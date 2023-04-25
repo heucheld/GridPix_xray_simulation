@@ -374,7 +374,7 @@ int main(int argc, char *argv[]){
     string gasfile;
 
     if (argc < 10){
-        cout << "There are missing some arguments. The command is ./diffusion <path> <job> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field>" << endl;
+        cout << "There are missing some arguments. The command is ./simulation <path> <job> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field>" << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
