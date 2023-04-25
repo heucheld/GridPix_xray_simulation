@@ -144,6 +144,19 @@ void write_text_to_position_file(const char* file, const char* text){
     fclose(pFile);
 }
 
+void generateGasFile(std::string filename, std::string gas1, double fraction1, std::string gas2, double fraction2, double pressure, double temperature, double ncollisions, double emin, double emax, unsigned int nE, double bmin, double bmax, unsigned int nB) {
+  // Define the gas mixture
+  Garfield::MediumMagboltz gas(gas1.c_str(), fraction1, gas2.c_str(), fraction2);
+  gas.SetTemperature(temperature);
+  gas.SetPressure(pressure);
+  // Define the field grid
+  gas.SetFieldGrid(emin, emax, nE, bmin, bmax, nB);
+  // Generate the gas table
+  gas.GenerateGasTable(ncollisions);
+  // Generate the gas file
+  gas.WriteGasFile(filename.c_str());
+}
+
 /**
  *  Simulate the conversion point of a photon with a given energy and a start point
  *  Use a defined Garfield sensor (with gas mixture, temperature and pressure)
