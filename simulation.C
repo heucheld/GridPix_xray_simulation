@@ -36,7 +36,7 @@ TRandom degrad_random;
 
 /**
  * Execute a shell command
-*/
+ */
 string exec(const char* cmd){
     char buffer[128];
     string result = "";
@@ -54,9 +54,9 @@ string exec(const char* cmd){
     return result;
 }
 
-std::string fixedLength(int value){
+string fixedLength(int value){
     int digits = 6;
-    std::string result;
+    string result;
     while (digits-- > 0){
         result += ('0' + value % 10);
         value /= 10;
@@ -64,20 +64,20 @@ std::string fixedLength(int value){
     if (value < 0){
         result += '-';
     }
-    std::reverse(result.begin(), result.end());
+    reverse(result.begin(), result.end());
     return result;
 }
 
 /**
  *  Returns a string containing the time information
  */
-std::string time(){
+string time(){
     time_t Zeitstempel;
     tm *nun;
     Zeitstempel = time(0);
     nun = localtime(&Zeitstempel);
     int start = (nun->tm_hour) * 10000 + (nun->tm_min) * 100 + nun->tm_sec;
-    std::string time = fixedLength(start);
+    string time = fixedLength(start);
     time.insert(2, "-");
     time.insert(5, "-");
     return time;
@@ -86,33 +86,33 @@ std::string time(){
 /**
  *  Returns a string containing the date in reverse order
  */
-std::string date(){
+string date(){
     time_t Zeitstempel;
     tm *nun;
     Zeitstempel = time(0);
     nun = localtime(&Zeitstempel);
     int date = ((nun->tm_year + 1900) % 100) * 10000 + (nun->tm_mon + 1) * 100 + (nun->tm_mday);
-    std::string date_s = fixedLength(date);
+    string date_s = fixedLength(date);
     return date_s;
 }
 
 /**
  *  Writes the run.txt file, To be called after (!!!) all the simulations
  */
-void runfile(std::string begindate, std::string begintime, int runnumber, std::string dir){
-    std::fstream f;
-    std::string file = dir + "//run.txt";
-    f.open(file, std::ios::out);
+void runfile(string begindate, string begintime, int runnumber, string dir){
+    fstream f;
+    string file = dir + "//run.txt";
+    f.open(file, ios::out);
     f << "Run number run:\t\t" << runnumber << "\n";
     f << "Run start time:\t\t" << begindate << "_" << begintime << "\n";
     f << "Run end time:\t" << date() << "_" << time() << "\n";
     f << "\n";
     f << "Run parameters:\n";
     f << "\t run mode (0=time,1=number of frames) \t1\n";
-    f << "\t run time / number of triggers	0\n";
-    f << "\t shutter mode (0 = untiggered, 1 = untriggered long, 2 = untriggered very long, 3 = untiggered 2x faster clock, 4 = untiggered long 2x faster clock, 5 = untiggered very long 2x faster clock, 6 = external trigger, 7 = external trigger 2x faster clock 	long\n";
+    f << "\t run time / number of triggers      0\n";
+    f << "\t shutter mode (0 = untiggered, 1 = untriggered long, 2 = untriggered very long, 3 = untiggered 2x faster clock, 4 = untiggered long 2x faster clock, 5 = untiggered very long 2x faster clock, 6 = external trigger, 7 = external trigger 2x faster clock   long\n";
     f << "\t shutter time 200\n";
-    f << "\t readout mode (0 = zero suppressed, 1 = complete matrix)	0\n\n";
+    f << "\t readout mode (0 = zero suppressed, 1 = complete matrix)    0\n\n";
     f << "Chip IDs:\n";
     f << "\t FEC 0 Board 0 Chip 1: H1-W10\n";
 }
@@ -120,21 +120,21 @@ void runfile(std::string begindate, std::string begintime, int runnumber, std::s
 /**
  *  Copies the config files provided in an extra folder into the run folder
  */
-void makeconfig(std::string dir){
+void makeconfig(string dir){
     //threshold
-    std::string file = dir + "//chip_1_board_0_fec_0_threshold.txt";
-    std::ifstream srce("config_vorlagen//chip_1_board_0_fec_0_threshold.txt", std::ios::binary);
-    std::ofstream dest(file, std::ios::binary);
+    string file = dir + "//chip_1_board_0_fec_0_threshold.txt";
+    ifstream srce("config_vorlagen//chip_1_board_0_fec_0_threshold.txt", ios::binary);
+    ofstream dest(file, ios::binary);
     dest << srce.rdbuf();
     //matrix
     file = dir + "//chip_1_board_0_fec_0_matrix.txt";
-    srce = std::ifstream("config_vorlagen//chip_1_board_0_fec_0_matrix.txt", std::ios::binary);
-    dest = std::ofstream(file, std::ios::binary);
+    srce = ifstream("config_vorlagen//chip_1_board_0_fec_0_matrix.txt", ios::binary);
+    dest = ofstream(file, ios::binary);
     dest << srce.rdbuf();
     //fsr
     file = dir + "//chip_1_board_0_fec_0_fsr.txt";
-    srce = std::ifstream("config_vorlagen//chip_1_board_0_fec_0_fsr.txt", std::ios::binary);
-    dest = std::ofstream(file, std::ios::binary);
+    srce = ifstream("config_vorlagen//chip_1_board_0_fec_0_fsr.txt", ios::binary);
+    dest = ofstream(file, ios::binary);
     dest << srce.rdbuf();
 }
 
@@ -148,10 +148,10 @@ void write_text_to_position_file(const char* file, const char* text){
  *  Simulate the conversion point of a photon with a given energy and a start point
  *  Use a defined Garfield sensor (with gas mixture, temperature and pressure)
  */
-double get_start_position(double energy, Sensor* sensor, double z_start){
+double get_start_position(double energy, Sensor& sensor, double z_start){
     // Initialize the photon track
     TrackHeed trackphoton;
-    trackphoton.SetSensor(sensor);
+    trackphoton.SetSensor(&sensor);
     trackphoton.EnableElectricField();
 
     // Initial coordinates of the photon.
@@ -195,16 +195,16 @@ double get_start_position(double energy, Sensor* sensor, double z_start){
  * Write an input file for degrad based on photon energy, the gas mixture (two gases and their percentages),
  * the gas pressure and temperature, the electric field.
  * It is written into a file with a given filename
-*/
-void write_degrad_file(double energy, int gas1, int gas2, double percentage1, double percentage2, double temperature, double pressure, double efield, std::string filename){
+ */
+void write_degrad_file(double energy, int gas1, int gas2, double percentage1, double percentage2, double temperature, double pressure, double efield, string filename){
     // Get a random seed for degrad
     int seed = degrad_random.Integer(1000000);
-    std::cout << seed << std::endl;
-    
+    cout << seed << endl;
+
     // As degrad needs the right amount of spaces fill the file with spaces based on the length of the numbers
     double parameters[9] = {(double)seed, energy, (double)gas1, (double)gas2, percentage1, percentage2, temperature, pressure, efield};
     int spaces[9] = {10, 6, 5, 5, 6, 6, 7, 7, 7};
-    std::string space_strings[9] = {" ", " ", " ", " ", " ", " ", " ", " ", " "};
+    string space_strings[9] = {" ", " ", " ", " ", " ", " ", " ", " ", " "};
 
     for(int i = 0; i < 9; i++){
         int comparison = 1;
@@ -221,7 +221,7 @@ void write_degrad_file(double energy, int gas1, int gas2, double percentage1, do
             space_strings[i] += " ";
         }
     }
-    
+
     // Open and fill the file
     ofstream infile;
     infile.open(filename);
@@ -237,34 +237,34 @@ void write_degrad_file(double energy, int gas1, int gas2, double percentage1, do
 
 /**
  * Run degrad with a given input file
-*/
-void run_degrad(std::string filename){
-    std::string cmd_rm;
-    std::string cmd_rm2;
-	std::string cmd_degrad;
+ */
+void run_degrad(string filename){
+    string cmd_rm;
+    string cmd_rm2;
+    string cmd_degrad;
     cmd_rm = "rm -f DEGRAD.OUT";
     cmd_rm2 = "rm -f degrad.out";
-	cmd_degrad = "./degrad.run < " + filename + " > degrad.out";
-	std::cout << cmd_rm << "\t" << cmd_rm2 << "\t" << cmd_degrad << std::endl;
-    std::string err = "";
+    cmd_degrad = "./degrad.run < " + filename + " > degrad.out";
+    cout << cmd_rm << "\t" << cmd_rm2 << "\t" << cmd_degrad << endl;
+    string err = "";
 
     // Remove potential *.OUT files
     err = exec(cmd_rm.c_str());
-    //std::cout << cmd_rm << ":\t" << err << std::endl; // Debug output
+    //cout << cmd_rm << ":\t" << err << endl; // Debug output
 
     // Remove potential *.out files
     err = exec(cmd_rm2.c_str());
-    //std::cout << cmd_rm2 << ":\t" << err << std::endl; // Debug output
+    //cout << cmd_rm2 << ":\t" << err << endl; // Debug output
 
     // Start degrad
     err = exec(cmd_degrad.c_str());
-    //std::cout << cmd_degrad << ":\t" << err << std::endl; // Debug output
+    //cout << cmd_degrad << ":\t" << err << endl; // Debug output
 }
 
 /**
  * Get the degrad integer for a gas based on a Garfield++ gas name
-*/
-int get_gas_parameter(std::string gasname){
+ */
+int get_gas_parameter(string gasname){
     if (gasname == "CF4"){return 1;}
     else if (gasname == "Ar"){return 2;}
     else if (gasname == "Argon"){return 2;}
@@ -349,8 +349,8 @@ int get_gas_parameter(std::string gasname){
 
 int main(int argc, char *argv[]){
     // Get the timestamp - needed for folder- and filenames
-    std::string dateb = date();
-    std::string timeb = time();
+    string dateb = date();
+    string timeb = time();
 
     int runnumber = 1000;
 
@@ -360,8 +360,8 @@ int main(int argc, char *argv[]){
     int hits[pixel][pixel];
 
     // parameters for the simulation - should be arguments in the future
-    std::string gas1 = "He";
-    std::string gas2 = "DME";
+    string gas1 = "He";
+    string gas2 = "DME";
     double percentage1 = 80.0;
     double percentage2 = 20.0;
     double temperature = 20.0;
@@ -388,10 +388,10 @@ int main(int argc, char *argv[]){
     runnumber = (int)energy + job;
 
     // Create the needed folders
-    std::string dir = "Run_" + fixedLength(runnumber) + "_" + date() + "_" + time();
+    string dir = "Run_" + fixedLength(runnumber) + "_" + date() + "_" + time();
     mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     makeconfig(dir);
-    std::string degrad_dir = "Run_" + fixedLength(runnumber) + "_" + date() + "_" + time() + "_degrad";
+    string degrad_dir = "Run_" + fixedLength(runnumber) + "_" + date() + "_" + time() + "_degrad";
     mkdir(degrad_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
     // Make a gas medium.
@@ -410,7 +410,7 @@ int main(int argc, char *argv[]){
 
     // Combine gas and box to a simple geometry.
     GeometrySimple geo;
-    geo.AddSolid(&tube, gas);
+    geo.AddSolid(&tube, gas.get());
 
     //Debug plots:
     //ViewGeometry geoView;
@@ -442,23 +442,23 @@ int main(int argc, char *argv[]){
             }
         }
 
-        std::cout << "photon " << event << std::endl;
+        cout << "photon " << event << endl;
         double angle = 0;
 
         // Generate the filenames for the current event
-        std::string filename = "/run_" + fixedLength(runnumber) + "_data_" + fixedLength(event) + "_" + date() + "_" + time();
-        std::string in_file = degrad_dir + filename + ".in";
+        string filename = "/run_" + fixedLength(runnumber) + "_data_" + fixedLength(event) + "_" + date() + "_" + time();
+        string in_file = degrad_dir + filename + ".in";
 
         // Create the degrad in file and run degrad with it
         write_degrad_file(energy, get_gas_parameter(gas1), get_gas_parameter(gas2), percentage1, percentage2, temperature, pressure, efield, in_file);
         run_degrad(in_file);
-        std::cout << "Finished degrad" << std::endl;
+        cout << "Finished degrad" << endl;
 
         // Get a photon conversion point for the event. As an electron might not convert within the detector repeat until a position within the detector is found
         double position;
         while (true){
-            position = get_start_position(energy, &sensor, length);
-            //std::cout << position << std::endl;
+            position = get_start_position(energy, std::ref(sensor), length);
+            //cout << position << endl;
             if(position != false && position <= length){
                 break;
             }
@@ -467,17 +467,17 @@ int main(int argc, char *argv[]){
             }
         }
 
-        std::string file = dir + filename + ".txt";
-        std::fstream f;
-        f.open(file, std::ios::out);
-        
-        std::cout << "Final position: " << position << std::endl;
+        string file = dir + filename + ".txt";
+        fstream f;
+        f.open(file, ios::out);
+
+        cout << "Final position: " << position << endl;
 
         // Initialize variables for reading degrad data and for the secondary electrons
         Double_t x, y, z, t;
         Int_t n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11;
         Int_t nlines = 0;
-        std::ifstream in;
+        ifstream in;
         Int_t nevt, nclus, nstexc, mcomp, mpair;
         double x1, y1, z1, t1;
         double x2, y2, z2, t2;
@@ -506,8 +506,8 @@ int main(int argc, char *argv[]){
         printf("DEGRAD: n10    = %d \n", n10);
 
         // Store the truth information of the event in a file
-        std::string photoelectron_file = "run_" + fixedLength(runnumber) + "_" + dateb + "_" + timeb + "_photoelectrons.txt";
-        std::string photoelectron_content = std::to_string(event) + "\t" + std::to_string(energy) + "\t" + std::to_string(angle) + "\t" + std::to_string(position) + "\t" + std::to_string(nclus);
+        string photoelectron_file = "run_" + fixedLength(runnumber) + "_" + dateb + "_" + timeb + "_photoelectrons.txt";
+        string photoelectron_content = to_string(event) + "\t" + to_string(energy) + "\t" + to_string(angle) + "\t" + to_string(position) + "\t" + to_string(nclus);
         write_text_to_position_file(photoelectron_file.c_str(), photoelectron_content.c_str());
 
         // For the gas gain the gain is drawn from a polya distribution
@@ -518,7 +518,7 @@ int main(int argc, char *argv[]){
 
         // Iterate over all secondary electrons of the photoelectron track and drift them to the readout
         for (Int_t iclus = 0; iclus < nclus; iclus++){
-            std::cout << "\rGARFIELD: Electron: " << iclus + 1 << " of " << nclus << std::flush;
+            cout << "\rGARFIELD: Electron: " << iclus + 1 << " of " << nclus << flush;
             // read in the data
             in >> x >> y >> z >> t >> n1 >> n2 >> n3;
             nlines++;
@@ -541,12 +541,12 @@ int main(int argc, char *argv[]){
             //aval->GetElectronEndpoint(0, x1, y1, z1, t1, x2, y2, z2, t2, status); // Different simulation tool - not working yet
 
             // Draw a gas gain from the polya distribution
-            double amp = polya.GetRandom(); 
-            //std::cout << "\t z_start: " << position + (z / 10000.) << "\t z_stop: " << z2 << "\t electrons: " << amp << "\t status: " << status << std::endl; // Debug output
-            
-            // Get the pixelcoordinates oh the electron 
-            int posx = std::floor((x2 + 0.7) / pixelsize);
-            int posy = std::floor((y2 + 0.7) / pixelsize);
+            double amp = polya.GetRandom();
+            //cout << "\t z_start: " << position + (z / 10000.) << "\t z_stop: " << z2 << "\t electrons: " << amp << "\t status: " << status << endl; // Debug output
+
+            // Get the pixelcoordinates oh the electron
+            int posx = floor((x2 + 0.7) / pixelsize);
+            int posy = floor((y2 + 0.7) / pixelsize);
             if(posx < 0 || posx > 255 || posy < 0 || posy > 255){
                 continue;
             }
@@ -559,13 +559,13 @@ int main(int argc, char *argv[]){
 
         // Close the degrad output file and move it in the runfolder with a new name based on the eventnumber
         in.close();
-        std::string cmd_degrad_out = "cp DEGRAD.OUT " + degrad_dir + "/run_" + fixedLength(runnumber) + "_data_" + fixedLength(event) + "_" + date() + "_" + time() + ".OUT";
-        std::cout << cmd_degrad_out << std::endl;
-        std::string err = "";
+        string cmd_degrad_out = "cp DEGRAD.OUT " + degrad_dir + "/run_" + fixedLength(runnumber) + "_data_" + fixedLength(event) + "_" + date() + "_" + time() + ".OUT";
+        cout << cmd_degrad_out << endl;
+        string err = "";
         err = exec(cmd_degrad_out.c_str());
-        //std::cout << cmd_degrad_out << ":\t" << err << std::endl; //Debug output
+        //cout << cmd_degrad_out << ":\t" << err << endl; //Debug output
 
-        std::cout << std::endl;
+        cout << endl;
 
         // Write the TOS data file with the zerosupressed x, y and gain data
         f << "FEC 0\n";
