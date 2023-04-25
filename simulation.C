@@ -395,7 +395,7 @@ int main(int argc, char *argv[]){
     mkdir(degrad_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
     // Make a gas medium.
-    MediumMagboltz *gas = new MediumMagboltz();
+    std::unique_ptr<MediumMagboltz> gas = std::make_unique<MediumMagboltz>();
     gas->SetComposition(gas1, percentage1, gas2, percentage2);
     gas->SetTemperature(273.15+temperature);
     gas->SetPressure(pressure);
@@ -524,7 +524,7 @@ int main(int argc, char *argv[]){
             nlines++;
 
             // Initialize the electron track for drifting
-            AvalancheMicroscopic* aval = new AvalancheMicroscopic();
+            std::unique_ptr<AvalancheMicroscopic> aval = std::make_unique<AvalancheMicroscopic>();
             //AvalancheMC* aval = new AvalancheMC();    // Different simulation tool - not working yet
 
             aval->SetSensor(&sensor);
