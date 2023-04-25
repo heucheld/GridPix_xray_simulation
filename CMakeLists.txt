@@ -11,6 +11,6 @@ add_executable(simulation simulation.C)
 target_link_libraries(simulation Garfield::Garfield)
 
 # ---Copy all files locally to the build directory-------------------------------
-foreach(_file DEGRAD.OUT degrad.in degrad.run)
+foreach(_file degrad.run)
   configure_file(${_file} ${CMAKE_CURRENT_BINARY_DIR}/${_file} COPYONLY)
 endforeach()
