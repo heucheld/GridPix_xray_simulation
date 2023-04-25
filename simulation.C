@@ -383,6 +383,9 @@ int main(int argc, char *argv[]){
     double energy = 10000.0;
     int job = 0;
 
+    cout << "Generate gasfile" << endl;
+    generateGasFile("He_DME_80_20_1_05bar.gas", gas1, percentage1, gas2, percentage2, pressure, 273.15+temperature, 20, 400, 1000, 40, 0,0,0);
+
     if (argc < 2 || argc > 2){
         job = 0;
     }
@@ -412,6 +415,7 @@ int main(int argc, char *argv[]){
     gas->SetComposition(gas1, percentage1, gas2, percentage2);
     gas->SetTemperature(273.15+temperature);
     gas->SetPressure(pressure);
+    gas->LoadGasFile("He_DME_80_20_1_05bar.gas");
     gas->Initialise(true);
 
     // Create a cylinder in which the x-rays can convert.
@@ -537,21 +541,21 @@ int main(int argc, char *argv[]){
             nlines++;
 
             // Initialize the electron track for drifting
-            std::unique_ptr<AvalancheMicroscopic> aval = std::make_unique<AvalancheMicroscopic>();
-            //AvalancheMC* aval = new AvalancheMC();    // Different simulation tool - not working yet
+            //std::unique_ptr<AvalancheMicroscopic> aval = std::make_unique<AvalancheMicroscopic>();
+            std::unique_ptr<AvalancheMC> aval = std::make_unique<AvalancheMC>();
 
             aval->SetSensor(&sensor);
             //aval->EnablePlotting(&view);  // Debug plot
 
             // Drift the electron with a given x, y, z start position
-            aval->AvalancheElectron(x / 10000., y / 10000., position + (z / 10000.), 0, 0, 0, 0, 0);
-            //aval->AvalancheElectron(x / 10000., y / 10000., position + (z / 10000.), 0);  // Different simulation tool - not working yet
+            //aval->AvalancheElectron(x / 10000., y / 10000., position + (z / 10000.), 0, 0, 0, 0, 0);
+            aval->AvalancheElectron(x / 10000., y / 10000., position + (z / 10000.), 0);  // Different simulation tool - not working yet
             //aval->DriftElectron(x / 10000., y / 10000., position + (z / 10000.), 0., 0., 0., 0., 0.); // Different simulation tool - not working yet
 
             // Get the electron endpoints
             aval->GetNumberOfElectronEndpoints();
-            aval->GetElectronEndpoint(0, x1, y1, z1, t1, e1, x2, y2, z2, t2, e2, status);
-            //aval->GetElectronEndpoint(0, x1, y1, z1, t1, x2, y2, z2, t2, status); // Different simulation tool - not working yet
+            //aval->GetElectronEndpoint(0, x1, y1, z1, t1, e1, x2, y2, z2, t2, e2, status);
+            aval->GetElectronEndpoint(0, x1, y1, z1, t1, x2, y2, z2, t2, status); // Different simulation tool - not working yet
 
             // Draw a gas gain from the polya distribution
             double amp = polya.GetRandom();
