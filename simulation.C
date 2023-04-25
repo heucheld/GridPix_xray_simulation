@@ -496,7 +496,6 @@ int main(int argc, char *argv[]){
         Int_t nevt, nclus, nstexc, mcomp, mpair;
         double x1, y1, z1, t1;
         double x2, y2, z2, t2;
-        double e1, e2;
         int status;
         mpair = 0;
 
