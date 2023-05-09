@@ -63,7 +63,7 @@ make
 Now the tool is ready to be used. It has several arguments that define the detector
 parameters. The tool can be stated with:
 ```
-./simulation <path> <job> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field>
+./simulation <path> <job> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization>
 ```
 These are the parameters:
 - `path` defines the path to a gas file which is used for the drift of the
@@ -83,6 +83,7 @@ These are the parameters:
 - `temperature` defines the temperature of the gas in Celsius.
 - `pressure` defines the pressure of the gas in Torr.
 - `field` defines the driftfield in V/cm.
+- `polarization` defines the degree of polarization between 0.0 and 1.0 (linear polarization in x-direction)
 
 ## Gases
 The following gases are supported:

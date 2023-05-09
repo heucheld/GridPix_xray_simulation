@@ -374,27 +374,28 @@ int main(int argc, char *argv[]){
     bool create_gasfile = true;
     string gasfile;
 
-    if (argc < 10){
-        cout << "There are missing some arguments. The command is ./simulation <path> <job> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field>" << endl;
+    if (argc < 11){
+        cout << "There are missing some arguments. The command is ./simulation <path> <job> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization>" << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
-    if (argc == 11){
+    if (argc == 12){
         gasfile = argv[1];
         create_gasfile = false;
     }
     else{
         create_gasfile = true;
     }
-    int job = atoi(argv[argc - 9]);
-    double energy = atof(argv[argc - 8]);
-    string gas1 = argv[argc - 7];
-    string gas2 = argv[argc - 6];
-    double percentage1 = atof(argv[argc - 5]);
-    double percentage2 = atof(argv[argc - 4]);
-    double temperature = atof(argv[argc - 3]);
-    double pressure = atof(argv[argc - 2]);
-    double efield = atof(argv[argc - 1]);
+    int job = atoi(argv[argc - 10]);
+    double energy = atof(argv[argc - 9]);
+    string gas1 = argv[argc - 8];
+    string gas2 = argv[argc - 7];
+    double percentage1 = atof(argv[argc - 6]);
+    double percentage2 = atof(argv[argc - 5]);
+    double temperature = atof(argv[argc - 4]);
+    double pressure = atof(argv[argc - 3]);
+    double efield = atof(argv[argc - 2]);
+    double polarization = atof(argv[argc - 1]);
 
     if (create_gasfile){
         cout << "Generate gasfile" << endl;
@@ -459,8 +460,7 @@ int main(int argc, char *argv[]){
         }
 
         cout << "photon " << event << endl;
-        
-        double polarization = 1;
+
         TF1 angles = TF1("angles","[0]*TMath::Cos(x) * TMath::Cos(x)+[1]", 0, 2*TMath::Pi());
         angles.SetParameter(0, 1 - (1 - polarization) / (1 + polarization));
         angles.SetParameter(1, (1 - polarization) / (1 + polarization));
