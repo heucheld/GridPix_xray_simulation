@@ -460,7 +460,10 @@ int main(int argc, char *argv[]){
 
         cout << "photon " << event << endl;
         
-        TF1 angles = TF1("angles","TMath::Cos(x) * TMath::Cos(x)", 0, 2*TMath::Pi());
+        double polarization = 1;
+        TF1 angles = TF1("angles","[0]*TMath::Cos(x) * TMath::Cos(x)+[1]", 0, 2*TMath::Pi());
+        angles.SetParameter(0, 1 - (1 - polarization) / (1 + polarization));
+        angles.SetParameter(1, (1 - polarization) / (1 + polarization));
         double angle = angles.GetRandom();
 
         // Generate the filenames for the current event
