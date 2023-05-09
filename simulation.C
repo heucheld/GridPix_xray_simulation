@@ -15,6 +15,7 @@
 #include <TH2F.h>
 #include <TF1.h>
 #include <TRandom.h>
+#include <TMath.h>
 
 #include "Garfield/TrackHeed.hh"
 #include "Garfield/MediumMagboltz.hh"
@@ -546,7 +547,11 @@ int main(int argc, char *argv[]){
 
             // Drift the electron with a given x, y, z start position
             //aval->AvalancheElectron(x / 10000., y / 10000., position + (z / 10000.), 0, 0, 0, 0, 0);
-            aval->AvalancheElectron(x / 10000., y / 10000., position + (z / 10000.), 0);  // Different simulation tool - not working yet
+            
+            // Rotate secondary electron start coordinates by defined angle
+            double rot_x = x * TMath::Cos(angle) - y * TMath::Sin(angle);
+            double rot_y = x * TMath::Sin(angle) + y * TMath::Cos(angle);
+            aval->AvalancheElectron(rot_x / 10000., rot_y / 10000., position + (z / 10000.), 0);
             //aval->DriftElectron(x / 10000., y / 10000., position + (z / 10000.), 0., 0., 0., 0., 0.); // Different simulation tool - not working yet
 
             // Get the electron endpoints
