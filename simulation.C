@@ -459,7 +459,9 @@ int main(int argc, char *argv[]){
         }
 
         cout << "photon " << event << endl;
-        double angle = 0;
+        
+        TF1 angles = TF1("angles","TMath::Cos(x) * TMath::Cos(x)", 0, 2*TMath::Pi());
+        double angle = angles.GetRandom();
 
         // Generate the filenames for the current event
         string filename = "/run_" + fixedLength(job) + "_data_" + fixedLength(event) + "_" + date() + "_" + time();
