@@ -63,7 +63,7 @@ make
 Now the tool is ready to be used. It has several arguments that define the detector
 parameters. The tool can be stated with:
 ```
-./simulation <path> <job> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization>
+./simulation <path> <job> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <amp_scaling> <amp_gain> <amp_width>
 ```
 These are the parameters:
 - `path` defines the path to a gas file which is used for the drift of the
@@ -83,7 +83,10 @@ These are the parameters:
 - `temperature` defines the temperature of the gas in Celsius.
 - `pressure` defines the pressure of the gas in Torr.
 - `field` defines the driftfield in V/cm.
-- `polarization` defines the degree of polarization between 0.0 and 1.0 (linear polarization in x-direction)
+- `polarization` defines the degree of polarization between 0.0 and 1.0 (linear
+   polarization in x-direction)
+- `amp_scaling`, `amp_gain` and `amp_width` are the fit parameters of the polya
+   distribution for the simulation of the gas gain
 
 ## Gases
 The following gases are supported:
@@ -148,9 +151,7 @@ The following gases are supported:
 ## Planned for the future
 - Possibility to choose between AvalancheMC and AvalancheMicroscopic
 - Timepix3/GridPix3 support
-- Mone carlo of angular distribution of photoelectrons
 - Consideration of z-boost of photoelectrons
-- Selectable parameters for the polya of the gas gain monte carlo
 - Optional gas gain simulation based on tracking
 - Monte carlo of the Grid collection efficiency
 - Consideration of absorptions in detector windows
