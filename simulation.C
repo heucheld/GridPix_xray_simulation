@@ -559,7 +559,7 @@ int main(int argc, char *argv[]){
             // Rotate secondary electron start coordinates by defined angle
             double rot_x = x * TMath::Cos(angle) - y * TMath::Sin(angle);
             double rot_y = x * TMath::Sin(angle) + y * TMath::Cos(angle);
-            aval->AvalancheElectron(rot_x / 10000., rot_y / 10000., position + (z / 10000.), 0);
+            aval->AvalancheElectron(rot_x / 10000., rot_y / 10000., position + (z / 10000.), t / 1000.0);
             //aval->DriftElectron(x / 10000., y / 10000., position + (z / 10000.), 0., 0., 0., 0., 0.); // Different simulation tool - not working yet
 
             // Get the electron endpoints
@@ -574,6 +574,8 @@ int main(int argc, char *argv[]){
             // Get the pixelcoordinates oh the electron
             int posx = floor((x2 + 0.7) / pixelsize);
             int posy = floor((y2 + 0.7) / pixelsize);
+            int toa = floor(t2 / 25); // 40 MHz clock
+            int ftoa = 16 - floor((t2 - toa * 25) / 1.5625); // 640 MHz clock
             if(posx < 0 || posx > 255 || posy < 0 || posy > 255){
                 continue;
             }
