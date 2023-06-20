@@ -503,8 +503,8 @@ int main(int argc, char *argv[]){
         Int_t nlines = 0;
         ifstream in;
         Int_t nevt, nclus, nstexc, mcomp, mpair;
-        double x1, y1, z1, t1;
-        double x2, y2, z2, t2;
+        double x1, y1, z1, t1, e1;
+        double x2, y2, z2, t2, e2;
         int status;
         mpair = 0;
 
