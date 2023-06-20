@@ -545,27 +545,30 @@ int main(int argc, char *argv[]){
             // read in the data
             in >> x >> y >> z >> t >> n1 >> n2 >> n3;
             nlines++;
-
-            // Initialize the electron track for drifting
-            //std::unique_ptr<AvalancheMicroscopic> aval = std::make_unique<AvalancheMicroscopic>();
-            std::unique_ptr<AvalancheMC> aval = std::make_unique<AvalancheMC>();
-
-            aval->SetSensor(&sensor);
-            //aval->EnablePlotting(&view);  // Debug plot
-
-            // Drift the electron with a given x, y, z start position
-            //aval->AvalancheElectron(x / 10000., y / 10000., position + (z / 10000.), 0, 0, 0, 0, 0);
             
             // Rotate secondary electron start coordinates by defined angle
             double rot_x = x * TMath::Cos(angle) - y * TMath::Sin(angle);
             double rot_y = x * TMath::Sin(angle) + y * TMath::Cos(angle);
-            aval->AvalancheElectron(rot_x / 10000., rot_y / 10000., position + (z / 10000.), t / 1000.0);
-            //aval->DriftElectron(x / 10000., y / 10000., position + (z / 10000.), 0., 0., 0., 0., 0.); // Different simulation tool - not working yet
 
-            // Get the electron endpoints
-            aval->GetNumberOfElectronEndpoints();
-            //aval->GetElectronEndpoint(0, x1, y1, z1, t1, e1, x2, y2, z2, t2, e2, status);
-            aval->GetElectronEndpoint(0, x1, y1, z1, t1, x2, y2, z2, t2, status); // Different simulation tool - not working yet
+            string simulation = "AE"; // "AE" for AvalancheElectron and "DE" for DriftElectron; "DE" requires a gas file
+
+            if(simulation == "AE"){
+                std::unique_ptr<AvalancheMC> aval = std::make_unique<AvalancheMC>();
+                aval->SetSensor(&sensor);
+                aval->AvalancheElectron(rot_x / 10000., rot_y / 10000., position + (z / 10000.), t / 1000.0);
+                aval->GetNumberOfElectronEndpoints();
+                aval->GetElectronEndpoint(0, x1, y1, z1, t1, x2, y2, z2, t2, status);
+            }
+            else if(simulation == "DE"){
+                std::unique_ptr<AvalancheMicroscopic> aval = std::make_unique<AvalancheMicroscopic>();
+                aval->SetSensor(&sensor);
+                aval->DriftElectron(rot_x / 10000., rot_y / 10000., position + (z / 10000.), t / 1000.0, 0., 0., 0., 0.);
+                aval->GetNumberOfElectronEndpoints();
+                aval->GetElectronEndpoint(0, x1, y1, z1, t1, e1, x2, y2, z2, t2, e2, status);
+            }
+            else{
+                return -1;
+            }
 
             // Draw a gas gain from the polya distribution
             double amp = polya.GetRandom();
