@@ -483,7 +483,7 @@ int main(int argc, char *argv[]){
         while (true){
             position = get_start_position(energy, std::ref(sensor), length);
             //cout << position << endl;
-            if(position != false && position <= length){
+            if(position != false && position <= length && position >= 0.0){
                 break;
             }
             else{
