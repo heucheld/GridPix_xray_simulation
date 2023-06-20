@@ -213,7 +213,7 @@ double get_start_position(double energy, Sensor& sensor, double z_start){
 void write_degrad_file(double energy, int gas1, int gas2, double percentage1, double percentage2, double temperature, double pressure, double efield, string filename){
     // Get a random seed for degrad
     int seed = degrad_random.Integer(1000000);
-    cout << seed << endl;
+    //cout << seed << endl;
 
     // As degrad needs the right amount of spaces fill the file with spaces based on the length of the numbers
     double parameters[9] = {(double)seed, energy, (double)gas1, (double)gas2, percentage1, percentage2, temperature, pressure, efield};
@@ -259,7 +259,7 @@ void run_degrad(string filename){
     cmd_rm = "rm -f DEGRAD.OUT";
     cmd_rm2 = "rm -f degrad.out";
     cmd_degrad = "./degrad.run < " + filename + " > degrad.out";
-    cout << cmd_rm << "\t" << cmd_rm2 << "\t" << cmd_degrad << endl;
+    //cout << cmd_rm << "\t" << cmd_rm2 << "\t" << cmd_degrad << endl;
     string err = "";
 
     // Remove potential *.OUT files
@@ -401,7 +401,7 @@ int main(int argc, char *argv[]){
     double amplification_width = atof(argv[argc - 1]);
 
     if (create_gasfile){
-        cout << "Generate gasfile" << endl;
+        cout << "MAGBOLTZ: Generate gasfile" << endl;
         gasfile = gas1 + "_" + gas2 + "_" + to_string(int(percentage1)) + "_" + to_string(int(percentage2)) + "_" + to_string(int(pressure)) + "torr_" + to_string(int(temperature)) + "C_" + to_string(int(efield)) + "Vcm.gas";
         generateGasFile(gasfile, gas1, percentage1, gas2, percentage2, pressure, 273.15+temperature, 20, efield-300, efield+300, 40, 0,0,0);
     }
@@ -462,7 +462,7 @@ int main(int argc, char *argv[]){
             }
         }
 
-        cout << "photon " << event << endl;
+        cout << "GARIFELD: photon " << event << endl;
 
         TF1 angles = TF1("angles","[0]*TMath::Cos(x) * TMath::Cos(x)+[1]", 0, 2*TMath::Pi());
         angles.SetParameter(0, 1 - (1 - polarization) / (1 + polarization));
@@ -476,7 +476,7 @@ int main(int argc, char *argv[]){
         // Create the degrad in file and run degrad with it
         write_degrad_file(energy, get_gas_parameter(gas1), get_gas_parameter(gas2), percentage1, percentage2, temperature, pressure, efield, in_file);
         run_degrad(in_file);
-        cout << "Finished degrad" << endl;
+        cout << "DEGRAD: Finished photoelectron track" << endl;
 
         // Get a photon conversion point for the event. As an electron might not convert within the detector repeat until a position within the detector is found
         double position;
@@ -495,7 +495,7 @@ int main(int argc, char *argv[]){
         fstream f;
         f.open(file, ios::out);
 
-        cout << "Final position: " << position << endl;
+        cout << "GARFIELD: Final position: " << position << endl;
 
         // Initialize variables for reading degrad data and for the secondary electrons
         Double_t x, y, z, t;
@@ -518,15 +518,15 @@ int main(int argc, char *argv[]){
         printf("DEGRAD: nevt   = %d \n", nevt);
         printf("DEGRAD: nclus  = %d \n", nclus);
         printf("DEGRAD: nstexc = %d \n", nstexc);
-        printf("DEGRAD: mcomp  = %d \n", mcomp);
-        printf("DEGRAD: mpair  = %d \n", mpair);
-        printf("DEGRAD: n4     = %d \n", n4);
-        printf("DEGRAD: n5     = %d \n", n5);
-        printf("DEGRAD: n6     = %d \n", n6);
-        printf("DEGRAD: n7     = %d \n", n7);
-        printf("DEGRAD: n8     = %d \n", n8);
-        printf("DEGRAD: n9     = %d \n", n9);
-        printf("DEGRAD: n10    = %d \n", n10);
+        //printf("DEGRAD: mcomp  = %d \n", mcomp);
+        //printf("DEGRAD: mpair  = %d \n", mpair);
+        //printf("DEGRAD: n4     = %d \n", n4);
+        //printf("DEGRAD: n5     = %d \n", n5);
+        //printf("DEGRAD: n6     = %d \n", n6);
+        //printf("DEGRAD: n7     = %d \n", n7);
+        //printf("DEGRAD: n8     = %d \n", n8);
+        //printf("DEGRAD: n9     = %d \n", n9);
+        //printf("DEGRAD: n10    = %d \n", n10);
 
         // Store the truth information of the event in a file
         string photoelectron_file = "run_" + fixedLength(job) + "_" + dateb + "_" + timeb + "_photoelectrons.txt";
@@ -589,7 +589,7 @@ int main(int argc, char *argv[]){
         // Close the degrad output file and move it in the runfolder with a new name based on the eventnumber
         in.close();
         string cmd_degrad_out = "cp DEGRAD.OUT " + degrad_dir + "/run_" + fixedLength(job) + "_data_" + fixedLength(event) + "_" + date() + "_" + time() + ".OUT";
-        cout << cmd_degrad_out << endl;
+        //cout << cmd_degrad_out << endl;
         string err = "";
         err = exec(cmd_degrad_out.c_str());
         //cout << cmd_degrad_out << ":\t" << err << endl; //Debug output
