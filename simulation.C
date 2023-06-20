@@ -151,7 +151,7 @@ void generateGasFile(std::string filename, std::string gas1, double fraction1, s
   gas.SetTemperature(temperature);
   gas.SetPressure(pressure);
   // Define the field grid
-  gas.SetFieldGrid(emin, emax, nE, bmin, bmax, nB);
+  gas.SetFieldGrid(emin, emax, nE, false, bmin, bmax, nB);
   // Generate the gas table
   gas.GenerateGasTable(ncollisions);
   // Generate the gas file
@@ -403,7 +403,7 @@ int main(int argc, char *argv[]){
     if (create_gasfile){
         cout << "MAGBOLTZ: Generate gasfile" << endl;
         gasfile = gas1 + "_" + gas2 + "_" + to_string(int(percentage1)) + "_" + to_string(int(percentage2)) + "_" + to_string(int(pressure)) + "torr_" + to_string(int(temperature)) + "C_" + to_string(int(efield)) + "Vcm.gas";
-        generateGasFile(gasfile, gas1, percentage1, gas2, percentage2, pressure, 273.15+temperature, 20, efield-300, efield+300, 40, 0,0,0);
+        generateGasFile(gasfile, gas1, percentage1, gas2, percentage2, pressure, 273.15+temperature, 20, efield-300, efield+300, 41, 0,0,1);
     }
 
     // Create the needed folders
