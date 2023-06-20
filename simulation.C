@@ -421,6 +421,14 @@ int main(int argc, char *argv[]){
     gas->LoadGasFile(gasfile);
     gas->Initialise(true);
 
+    // Get diffusion parameters and drift velocity
+    double el_Tdiff = 0.0;
+    gas->GetElectronTransverseDiffusion(20, 0, 0, el_Tdiff);
+    double el_Ldiff = 0.0;
+    gas->GetElectronLongitudinalDiffusion(20, 0, 0, el_Ldiff);
+    double el_vel = 0.0;
+    gas->GetElectronVelocityE(20, 0, 0, el_vel);
+
     // Create a cylinder in which the x-rays can convert.
     // Diameter [cm]
     const double diameter = 7.8;
@@ -550,7 +558,7 @@ int main(int argc, char *argv[]){
             double rot_x = x * TMath::Cos(angle) - y * TMath::Sin(angle);
             double rot_y = x * TMath::Sin(angle) + y * TMath::Cos(angle);
 
-            string simulation = "AE"; // "AE" for AvalancheElectron and "DE" for DriftElectron; "DE" requires a gas file
+            string simulation = "MC"; // "AE" for AvalancheElectron, "DE" for DriftElectron and "MC" for Monte Carlo; "DE" and "MC" require a gas file
 
             if(simulation == "AE"){
                 std::unique_ptr<AvalancheMC> aval = std::make_unique<AvalancheMC>();
@@ -565,6 +573,17 @@ int main(int argc, char *argv[]){
                 aval->DriftElectron(rot_x / 10000., rot_y / 10000., position + (z / 10000.), t / 1000.0, 0., 0., 0., 0.);
                 aval->GetNumberOfElectronEndpoints();
                 aval->GetElectronEndpoint(0, x1, y1, z1, t1, e1, x2, y2, z2, t2, e2, status);
+            }
+            else if(simulation == "MC"){
+                // Calculate diffusion sigma based on electron z position and diffusion coefficient
+                double sigma = 10000 * el_Tdiff * TMath::Sqrt(position + (z / 10000.));
+                double a = degrad_random.Gaus(0, sigma);
+                double b = degrad_random.Gaus(0, sigma);
+
+                // Get end point parameters for the electron
+                x2 = (rot_x + a)/ 10000.;
+                y2 = (rot_y + b)/ 10000.;
+                t2 = (position + (z / 10000.))/el_vel; // Preliminary - will also depend on longitudinal diffusion
             }
             else{
                 return -1;
