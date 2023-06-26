@@ -374,19 +374,20 @@ int main(int argc, char *argv[]){
     bool create_gasfile = true;
     string gasfile;
 
-    if (argc < 14){
-        cout << "There are missing some arguments. The command is ./simulation <path> <job> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <amp_scaling> <amp_gain> <amp_width>" << endl;
+    if (argc < 15){
+        cout << "There are missing some arguments. The command is ./simulation <path> <job> <approach> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <amp_scaling> <amp_gain> <amp_width>" << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
-    if (argc == 15){
+    if (argc == 16){
         gasfile = argv[1];
         create_gasfile = false;
     }
     else{
         create_gasfile = true;
     }
-    int job = atoi(argv[argc - 13]);
+    int job = atoi(argv[argc - 14]);
+    int simulation_approach = atoi(argv[argc - 14]);
     double energy = atof(argv[argc - 12]);
     string gas1 = argv[argc - 11];
     string gas2 = argv[argc - 10];
@@ -558,23 +559,21 @@ int main(int argc, char *argv[]){
             double rot_x = x * TMath::Cos(angle) - y * TMath::Sin(angle);
             double rot_y = x * TMath::Sin(angle) + y * TMath::Cos(angle);
 
-            string simulation = "MC"; // "AE" for AvalancheElectron, "DE" for DriftElectron and "MC" for Monte Carlo; "DE" and "MC" require a gas file
-
-            if(simulation == "AE"){
+            if(simulation_approach == 0){
                 std::unique_ptr<AvalancheMC> aval = std::make_unique<AvalancheMC>();
                 aval->SetSensor(&sensor);
                 aval->AvalancheElectron(rot_x / 10000., rot_y / 10000., position + (z / 10000.), t / 1000.0);
                 aval->GetNumberOfElectronEndpoints();
                 aval->GetElectronEndpoint(0, x1, y1, z1, t1, x2, y2, z2, t2, status);
             }
-            else if(simulation == "DE"){
+            else if(simulation_approach == 1){
                 std::unique_ptr<AvalancheMicroscopic> aval = std::make_unique<AvalancheMicroscopic>();
                 aval->SetSensor(&sensor);
                 aval->DriftElectron(rot_x / 10000., rot_y / 10000., position + (z / 10000.), t / 1000.0, 0., 0., 0., 0.);
                 aval->GetNumberOfElectronEndpoints();
                 aval->GetElectronEndpoint(0, x1, y1, z1, t1, e1, x2, y2, z2, t2, e2, status);
             }
-            else if(simulation == "MC"){
+            else if(simulation_approach == 2){
                 // Calculate diffusion sigma based on electron z position and diffusion coefficient
                 double sigma = 10000 * el_Tdiff * TMath::Sqrt(position + (z / 10000.));
                 double a = degrad_random.Gaus(0, sigma);
