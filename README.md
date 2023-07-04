@@ -63,7 +63,7 @@ make
 Now the tool is ready to be used. It has several arguments that define the detector
 parameters. The tool can be stated with:
 ```
-./simulation <path> <job> <approach> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <amp_scaling> <amp_gain> <amp_width>
+./simulation <path> <job> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <amp_scaling> <amp_gain> <amp_width>
 ```
 These are the parameters:
 - `path` defines the path to a gas file which is used for the drift of the
@@ -77,6 +77,7 @@ These are the parameters:
    drift and diffusion. With 0 Garfields AvalancheMC is used. With 1 Garfields
    AvalancheMicroscopic is used and with 2 a monte carlo simulation based on
    the diffusion parameter is used.
+- `length` defines the length of the drift cylinder in cm
 - `energy` defines the energy of the incoming photons.
 - `gas1` defines the name of the first gas component. For possible gases see
    below.

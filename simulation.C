@@ -374,20 +374,21 @@ int main(int argc, char *argv[]){
     bool create_gasfile = true;
     string gasfile;
 
-    if (argc < 15){
-        cout << "There are missing some arguments. The command is ./simulation <path> <job> <approach> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <amp_scaling> <amp_gain> <amp_width>" << endl;
+    if (argc < 16){
+        cout << "There are missing some arguments. The command is ./simulation <path> <job> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <amp_scaling> <amp_gain> <amp_width>" << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
-    if (argc == 16){
+    if (argc == 17){
         gasfile = argv[1];
         create_gasfile = false;
     }
     else{
         create_gasfile = true;
     }
-    int job = atoi(argv[argc - 14]);
-    int simulation_approach = atoi(argv[argc - 13]);
+    int job = atoi(argv[argc - 15]);
+    int simulation_approach = atoi(argv[argc - 14]);
+    double length = atof(argv[argc - 13]);
     double energy = atof(argv[argc - 12]);
     string gas1 = argv[argc - 11];
     string gas2 = argv[argc - 10];
@@ -433,8 +434,6 @@ int main(int argc, char *argv[]){
     // Create a cylinder in which the x-rays can convert.
     // Diameter [cm]
     const double diameter = 7.8;
-    // Half-Length of the drfit cylinder [cm] (minus 0.5 cm).
-    const double length = 2.0;
     SolidTube tube(0.0, 0.0, length, 0.5 * diameter, length);
 
     // Combine gas and box to a simple geometry.
