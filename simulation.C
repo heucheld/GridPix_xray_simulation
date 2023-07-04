@@ -495,9 +495,6 @@ int main(int argc, char *argv[]){
             if(position != false && position <= length && position >= 0.0){
                 break;
             }
-            else{
-                event++;
-            }
         }
 
         string file = dir + filename + ".txt";
