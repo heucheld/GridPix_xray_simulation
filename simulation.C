@@ -387,7 +387,7 @@ int main(int argc, char *argv[]){
         create_gasfile = true;
     }
     int job = atoi(argv[argc - 14]);
-    int simulation_approach = atoi(argv[argc - 14]);
+    int simulation_approach = atoi(argv[argc - 13]);
     double energy = atof(argv[argc - 12]);
     string gas1 = argv[argc - 11];
     string gas2 = argv[argc - 10];
