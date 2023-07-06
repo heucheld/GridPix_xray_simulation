@@ -374,30 +374,31 @@ int main(int argc, char *argv[]){
     bool create_gasfile = true;
     string gasfile;
 
-    if (argc < 16){
-        cout << "There are missing some arguments. The command is ./simulation <path> <job> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <amp_scaling> <amp_gain> <amp_width>" << endl;
+    if (argc < 17){
+        cout << "There are missing some arguments. The command is ./simulation <path> <job> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width>" << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
-    if (argc == 17){
+    if (argc == 18){
         gasfile = argv[1];
         create_gasfile = false;
     }
     else{
         create_gasfile = true;
     }
-    int job = atoi(argv[argc - 15]);
-    int simulation_approach = atoi(argv[argc - 14]);
-    double length = atof(argv[argc - 13]);
-    double energy = atof(argv[argc - 12]);
-    string gas1 = argv[argc - 11];
-    string gas2 = argv[argc - 10];
-    double percentage1 = atof(argv[argc - 9]);
-    double percentage2 = atof(argv[argc - 8]);
-    double temperature = atof(argv[argc - 7]);
-    double pressure = atof(argv[argc - 6]);
-    double efield = atof(argv[argc - 5]);
-    double polarization = atof(argv[argc - 4]);
+    int job = atoi(argv[argc - 16]);
+    int simulation_approach = atoi(argv[argc - 15]);
+    double length = atof(argv[argc - 14]);
+    double energy = atof(argv[argc - 13]);
+    string gas1 = argv[argc - 12];
+    string gas2 = argv[argc - 11];
+    double percentage1 = atof(argv[argc - 10]);
+    double percentage2 = atof(argv[argc - 9]);
+    double temperature = atof(argv[argc - 8]);
+    double pressure = atof(argv[argc - 7]);
+    double efield = atof(argv[argc - 6]);
+    double polarization = atof(argv[argc - 5]);
+    double angle_offset = atof(argv[argc - 4]);
     double amplification_scaling = atof(argv[argc - 3]);
     double amplification_gain = atof(argv[argc - 2]);
     double amplification_width = atof(argv[argc - 1]);
@@ -475,7 +476,7 @@ int main(int argc, char *argv[]){
         TF1 angles = TF1("angles","[0]*TMath::Cos(x) * TMath::Cos(x)+[1]", 0, 2*TMath::Pi());
         angles.SetParameter(0, 1 - (1 - polarization) / (1 + polarization));
         angles.SetParameter(1, (1 - polarization) / (1 + polarization));
-        double angle = angles.GetRandom();
+        double angle = angles.GetRandom() + angle_offset;
 
         // Generate the filenames for the current event
         string filename = "/run_" + fixedLength(job) + "_data_" + fixedLength(event) + "_" + date() + "_" + time();
