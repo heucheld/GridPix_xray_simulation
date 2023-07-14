@@ -14,6 +14,7 @@
 #include <TApplication.h>
 #include <TH2F.h>
 #include <TF1.h>
+#include <TH1F.h>
 #include <TRandom.h>
 #include <TMath.h>
 
@@ -206,6 +207,84 @@ double get_start_position(double energy, Sensor& sensor, double z_start){
 }
 
 /**
+ *  Simulate conversion points of photons with a given energy and a start point
+ *  Use a defined Garfield sensor (with gas mixture, temperature and pressure)
+ *  The function return 3 fit parameters of the resulting exponential curve
+ */
+void get_absoption_curve(double energy, Sensor& sensor, double z_start, double *fit_parameters){
+    // Initialize the photon track
+    TrackHeed trackphoton;
+    trackphoton.SetSensor(&sensor);
+    trackphoton.EnableElectricField();
+
+    // Initial coordinates of the photon.
+    const double x0 = 0.;
+    const double y0 = 0.;
+    const double z0 = z_start;
+    const double t0 = 0.;
+    int ne = 0;
+
+    // Create the histogram for the simulated absorption points
+    TH1F absorption_points = TH1F("absorption_points", "absorption_points", 50, 0, z0);
+
+    // Simulate 100000 photons
+    for(int photon = 0; photon < 100000; photon++){
+        // Simulate the photon track
+        trackphoton.TransportPhoton(x0, y0, z0, t0, energy, 0., 0., -1., ne);
+        double z_sum = 0;
+
+        // If the photon is not absorbed within the gas volume simulate again
+        if(ne == 0){
+            photon--;
+            continue;
+        }
+        // Iterate over the generated primary electrons to get their starting points
+        for(int i = 0; i < ne; i++){
+            // Variables for the start values of the electrons
+            double start_x = 0.;
+            double start_y = 0.;
+            double start_z = 0.;
+            double start_time = 0.;
+            // Further variables - needed but not meaningful for this application
+            double start_energy = 0.;
+            double start_dx = 0.;
+            double start_dy = 0.;
+            double start_dz = 0.;
+
+            // Fill the variables for the individual electrons
+            trackphoton.GetElectron(i, start_x, start_y, start_z, start_time, start_energy, start_dx, start_dy, start_dz);
+            z_sum += start_z;
+        }
+
+        // Get the mean starting position of the electrons and fill it into the histogram
+        double z_mean = z_sum / ne;
+        absorption_points.Fill(z_mean);
+    }
+
+    // Draw the histogram in a canvas
+    auto c1 = new TCanvas();
+    absorption_points.Draw();
+
+    gStyle->SetOptStat(1);
+    gStyle->SetOptFit(1);
+
+    // Fit the histogram
+    TF1 exp = TF1("fit","[0]*exp([1]*(x-[2]))", 0.3, 0.8*z0);
+    absorption_points.Fit("fit", "R");
+    absorption_points.Draw();
+
+    // Return the fit parameters via a pointer
+    fit_parameters[0] = exp.GetParameter(0);
+    fit_parameters[1] = exp.GetParameter(1);
+    fit_parameters[2] = exp.GetParameter(2);
+
+    // Print the resulting histogram as PDF
+    c1->Print("absorption.pdf");
+
+    return;
+}
+
+/**
  * Write an input file for degrad based on photon energy, the gas mixture (two gases and their percentages),
  * the gas pressure and temperature, the electric field.
  * It is written into a file with a given filename
@@ -374,19 +453,20 @@ int main(int argc, char *argv[]){
     bool create_gasfile = true;
     string gasfile;
 
-    if (argc < 17){
-        cout << "There are missing some arguments. The command is ./simulation <path> <job> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width>" << endl;
+    if (argc < 18){
+        cout << "There are missing some arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width>" << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
-    if (argc == 18){
+    if (argc == 19){
         gasfile = argv[1];
         create_gasfile = false;
     }
     else{
         create_gasfile = true;
     }
-    int job = atoi(argv[argc - 16]);
+    int job = atoi(argv[argc - 17]);
+    int absorption_approach = atoi(argv[argc - 16]);
     int simulation_approach = atoi(argv[argc - 15]);
     double length = atof(argv[argc - 14]);
     double energy = atof(argv[argc - 13]);
@@ -458,7 +538,20 @@ int main(int argc, char *argv[]){
     Sensor sensor;
     sensor.AddComponent(&field);
 
-    int nEvents = 1000;
+    TF1 absoption_curve = TF1("absoption_curve","[0]*exp([1]*(x-[2]))", 0, length);
+
+    // If the absorption is simulated via monte carlo get the absorption curve via Garfield
+    if(absorption_approach != 0){
+        cout << "GARFIELD: Simulate 100000 photons to get the absorption curve" << endl;
+        double fit_parameters[3];
+        get_absoption_curve(energy, std::ref(sensor), length, fit_parameters);
+        absoption_curve.SetParameter(0, fit_parameters[0]);
+        absoption_curve.SetParameter(1, fit_parameters[1]);
+        absoption_curve.SetParameter(2, fit_parameters[2]);
+        cout << "GARFIELD: Absorption curve simulation finished" << endl;
+    }
+
+    int nEvents = 10000;
     int event = 0;
     int photoelectrons = 0;
     while (true){
@@ -487,14 +580,21 @@ int main(int argc, char *argv[]){
         run_degrad(in_file);
         cout << "DEGRAD: Finished photoelectron track" << endl;
 
-        // Get a photon conversion point for the event. As an electron might not convert within the detector repeat until a position within the detector is found
         double position;
-        while (true){
-            position = get_start_position(energy, std::ref(sensor), length);
-            //cout << position << endl;
-            if(position != false && position <= length && position >= 0.0){
-                break;
+        // Simulation of the absorption point per event via Garfield
+        if(absorption_approach == 0){
+            // Get a photon conversion point for the event. As an electron might not convert within the detector repeat until a position within the detector is found
+            while (true){
+                position = get_start_position(energy, std::ref(sensor), length);
+                //cout << position << endl;
+                if(position != false && position <= length && position >= 0.0){
+                    break;
+                }
             }
+        }
+        // Simulation of the absorption point via monte carlo and the absorption curve
+        else{
+            position = absoption_curve.GetRandom();
         }
 
         string file = dir + filename + ".txt";
