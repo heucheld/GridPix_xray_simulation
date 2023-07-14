@@ -43,6 +43,15 @@ Error: Rank mismatch in argument 'eco' at (1) (scalar and rank-1)
 ```
 As a workaround add `-fallow-argument-mismatch` for the compiler.
 
+> **Warning:** By default degrad emits the photoelectron in a random direction
+               on the perpendicular plane to the photon direction based on a
+               uniform distribution. For the simulation it is needed that
+               photoelectrons are always emitted in the same direction on this
+               plane. The simulation will rotate the event afterwards based on
+               the polarization settings.
+               Therefore there needs to be a small change in degrad (here for
+               version 3.15): In lines 24780 and 34303 delete `*R3`.
+
 ## Usage
 To use the simulation tool it must be compiled in a first step. Therefore create
 a new folder "build" and change into it:
