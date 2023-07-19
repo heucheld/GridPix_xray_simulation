@@ -453,35 +453,36 @@ int main(int argc, char *argv[]){
     bool create_gasfile = true;
     string gasfile;
 
-    if (argc < 18){
-        cout << "There are missing some arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width>" << endl;
+    if (argc < 19){
+        cout << "There are missing some arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events>" << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
-    if (argc == 19){
+    if (argc == 20){
         gasfile = argv[1];
         create_gasfile = false;
     }
     else{
         create_gasfile = true;
     }
-    int job = atoi(argv[argc - 17]);
-    int absorption_approach = atoi(argv[argc - 16]);
-    int simulation_approach = atoi(argv[argc - 15]);
-    double length = atof(argv[argc - 14]);
-    double energy = atof(argv[argc - 13]);
-    string gas1 = argv[argc - 12];
-    string gas2 = argv[argc - 11];
-    double percentage1 = atof(argv[argc - 10]);
-    double percentage2 = atof(argv[argc - 9]);
-    double temperature = atof(argv[argc - 8]);
-    double pressure = atof(argv[argc - 7]);
-    double efield = atof(argv[argc - 6]);
-    double polarization = atof(argv[argc - 5]);
-    double angle_offset = atof(argv[argc - 4]);
-    double amplification_scaling = atof(argv[argc - 3]);
-    double amplification_gain = atof(argv[argc - 2]);
-    double amplification_width = atof(argv[argc - 1]);
+    int job = atoi(argv[argc - 18]);
+    int absorption_approach = atoi(argv[argc - 17]);
+    int simulation_approach = atoi(argv[argc - 16]);
+    double length = atof(argv[argc - 15]);
+    double energy = atof(argv[argc - 14]);
+    string gas1 = argv[argc - 13];
+    string gas2 = argv[argc - 12];
+    double percentage1 = atof(argv[argc - 11]);
+    double percentage2 = atof(argv[argc - 10]);
+    double temperature = atof(argv[argc - 9]);
+    double pressure = atof(argv[argc - 8]);
+    double efield = atof(argv[argc - 7]);
+    double polarization = atof(argv[argc - 6]);
+    double angle_offset = atof(argv[argc - 5]);
+    double amplification_scaling = atof(argv[argc - 4]);
+    double amplification_gain = atof(argv[argc - 3]);
+    double amplification_width = atof(argv[argc - 2]);
+    int nEvents = atoi(argv[argc - 1]);
 
     if (create_gasfile){
         cout << "MAGBOLTZ: Generate gasfile" << endl;
@@ -551,7 +552,6 @@ int main(int argc, char *argv[]){
         cout << "GARFIELD: Absorption curve simulation finished" << endl;
     }
 
-    int nEvents = 10000;
     int event = 0;
     int photoelectrons = 0;
     while (true){

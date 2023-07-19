@@ -72,7 +72,7 @@ make
 Now the tool is ready to be used. It has several arguments that define the detector
 parameters. The tool can be stated with:
 ```
-./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width>
+./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events>
 ```
 These are the parameters:
 - `path` defines the path to a gas file which is used for the drift of the
@@ -107,6 +107,7 @@ These are the parameters:
 - `angle_offset` defines the direction of the polarisation plane in radian
 - `amp_scaling`, `amp_gain` and `amp_width` are the fit parameters of the polya
    distribution for the simulation of the gas gain
+- `events` defines the number of events that should be simulated
 
 ## Gases
 The following gases are supported:
