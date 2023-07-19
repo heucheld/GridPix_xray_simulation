@@ -211,7 +211,7 @@ double get_start_position(double energy, Sensor& sensor, double z_start){
  *  Use a defined Garfield sensor (with gas mixture, temperature and pressure)
  *  The function return 3 fit parameters of the resulting exponential curve
  */
-void get_absoption_curve(double energy, Sensor& sensor, double z_start, double *fit_parameters){
+void get_absoption_curve(string filename, double energy, Sensor& sensor, double z_start, double *fit_parameters){
     // Initialize the photon track
     TrackHeed trackphoton;
     trackphoton.SetSensor(&sensor);
@@ -270,6 +270,7 @@ void get_absoption_curve(double energy, Sensor& sensor, double z_start, double *
 
     // Fit the histogram
     TF1 exp = TF1("fit","[0]*exp([1]*(x-[2]))", 0.3, 0.8*z0);
+    exp.SetParLimits(1, 0, 10000);
     absorption_points.Fit("fit", "R");
     absorption_points.Draw();
 
@@ -279,7 +280,8 @@ void get_absoption_curve(double energy, Sensor& sensor, double z_start, double *
     fit_parameters[2] = exp.GetParameter(2);
 
     // Print the resulting histogram as PDF
-    c1->Print("absorption.pdf");
+    filename = filename + "Absorption.pdf";
+    c1->Print(filename.c_str());
 
     return;
 }
@@ -545,7 +547,7 @@ int main(int argc, char *argv[]){
     if(absorption_approach != 0){
         cout << "GARFIELD: Simulate 100000 photons to get the absorption curve" << endl;
         double fit_parameters[3];
-        get_absoption_curve(energy, std::ref(sensor), length, fit_parameters);
+        get_absoption_curve(dir, energy, std::ref(sensor), length, fit_parameters);
         absoption_curve.SetParameter(0, fit_parameters[0]);
         absoption_curve.SetParameter(1, fit_parameters[1]);
         absoption_curve.SetParameter(2, fit_parameters[2]);
