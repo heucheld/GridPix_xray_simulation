@@ -223,6 +223,7 @@ void get_absoption_curve(string filename, double energy, Sensor& sensor, double 
     const double z0 = z_start;
     const double t0 = 0.;
     int ne = 0;
+    int total_photons = 0;
 
     // Create the histogram for the simulated absorption points
     TH1F absorption_points = TH1F("absorption_points", "absorption_points", 50, 0, z0);
@@ -232,6 +233,7 @@ void get_absoption_curve(string filename, double energy, Sensor& sensor, double 
         // Simulate the photon track
         trackphoton.TransportPhoton(x0, y0, z0, t0, energy, 0., 0., -1., ne);
         double z_sum = 0;
+        total_photons++;
 
         // If the photon is not absorbed within the gas volume simulate again
         if(ne == 0){
@@ -272,6 +274,8 @@ void get_absoption_curve(string filename, double energy, Sensor& sensor, double 
     TF1 exp = TF1("fit","[0]*exp([1]*(x-[2]))", 0.3, 0.8*z0);
     exp.SetParLimits(1, 0, 10000);
     absorption_points.Fit("fit", "R");
+    string title = "Absorption curve - Efficiency = " + to_string(100*100000.0/total_photons) + " %";
+    absorption_points.SetTitle(title.c_str());
     absorption_points.Draw();
 
     // Return the fit parameters via a pointer
@@ -280,7 +284,7 @@ void get_absoption_curve(string filename, double energy, Sensor& sensor, double 
     fit_parameters[2] = exp.GetParameter(2);
 
     // Print the resulting histogram as PDF
-    filename = filename + "Absorption.pdf";
+    filename = filename + "_absorption.pdf";
     c1->Print(filename.c_str());
 
     return;
