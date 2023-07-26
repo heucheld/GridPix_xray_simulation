@@ -461,37 +461,38 @@ int main(int argc, char *argv[]){
     bool create_gasfile = true;
     string gasfile;
 
-    if (argc < 20){
-        cout << "There are missing some arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events> <degrad_output>" << endl;
+    if (argc < 21){
+        cout << "There are missing some arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events> <degrad_output> <tar>" << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
-    if (argc == 21){
+    if (argc == 22){
         gasfile = argv[1];
         create_gasfile = false;
     }
     else{
         create_gasfile = true;
     }
-    int job = atoi(argv[argc - 19]);
-    int absorption_approach = atoi(argv[argc - 18]);
-    int simulation_approach = atoi(argv[argc - 17]);
-    double length = atof(argv[argc - 16]);
-    double energy = atof(argv[argc - 15]);
-    string gas1 = argv[argc - 14];
-    string gas2 = argv[argc - 13];
-    double percentage1 = atof(argv[argc - 12]);
-    double percentage2 = atof(argv[argc - 11]);
-    double temperature = atof(argv[argc - 10]);
-    double pressure = atof(argv[argc - 9]);
-    double efield = atof(argv[argc - 8]);
-    double polarization = atof(argv[argc - 7]);
-    double angle_offset = atof(argv[argc - 6]);
-    double amplification_scaling = atof(argv[argc - 5]);
-    double amplification_gain = atof(argv[argc - 4]);
-    double amplification_width = atof(argv[argc - 3]);
-    int nEvents = atoi(argv[argc - 2]);
-    int degrad_output = atoi(argv[argc - 1]);
+    int job = atoi(argv[argc - 20]);
+    int absorption_approach = atoi(argv[argc - 19]);
+    int simulation_approach = atoi(argv[argc - 18]);
+    double length = atof(argv[argc - 17]);
+    double energy = atof(argv[argc - 16]);
+    string gas1 = argv[argc - 15];
+    string gas2 = argv[argc - 14];
+    double percentage1 = atof(argv[argc - 13]);
+    double percentage2 = atof(argv[argc - 12]);
+    double temperature = atof(argv[argc - 11]);
+    double pressure = atof(argv[argc - 10]);
+    double efield = atof(argv[argc - 9]);
+    double polarization = atof(argv[argc - 8]);
+    double angle_offset = atof(argv[argc - 7]);
+    double amplification_scaling = atof(argv[argc - 6]);
+    double amplification_gain = atof(argv[argc - 5]);
+    double amplification_width = atof(argv[argc - 4]);
+    int nEvents = atoi(argv[argc - 3]);
+    int degrad_output = atoi(argv[argc - 2]);
+    int tar = atoi(argv[argc - 1]);
 
     if (create_gasfile){
         cout << "MAGBOLTZ: Generate gasfile" << endl;
@@ -507,6 +508,9 @@ int main(int argc, char *argv[]){
     if(degrad_output == 1){
         mkdir(degrad_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
+
+    // Create the filename for the photoelectrons file
+    string photoelectron_file = "run_" + fixedLength(job) + "_" + dateb + "_" + timeb + "_photoelectrons.txt";
 
     // Make a gas medium.
     std::unique_ptr<MediumMagboltz> gas = std::make_unique<MediumMagboltz>();
@@ -659,7 +663,6 @@ int main(int argc, char *argv[]){
         //printf("DEGRAD: n10    = %d \n", n10);
 
         // Store the truth information of the event in a file
-        string photoelectron_file = "run_" + fixedLength(job) + "_" + dateb + "_" + timeb + "_photoelectrons.txt";
         string photoelectron_content = to_string(event) + "\t" + to_string(energy) + "\t" + to_string(angle) + "\t" + to_string(position) + "\t" + to_string(nclus) + "\t" + to_string(degrad_seed);
         write_text_to_position_file(photoelectron_file.c_str(), photoelectron_content.c_str());
 
@@ -764,4 +767,24 @@ int main(int argc, char *argv[]){
     runfile(dateb, timeb, job, dir);
     cout << "GARFIELD: Simulation completed" << endl;
 
+    // Pack all files in a tar.gz folder - if selected
+    if(tar == 1){
+        cout << "Pack events into tar.gz" << endl;
+        string cmd_tar;
+        cmd_tar = "tar -czf " + dir + ".tar.gz " + dir + " " + photoelectron_file + " " + dir + "_absorption.pdf";
+        // Also pack degrad files if they were stored
+        if(degrad_output == 1){
+            cmd_tar = cmd_tar + " " + dir + "_degrad";
+        }
+        string err = "";
+        err = exec(cmd_tar.c_str());
+
+        // Delete all files as they are now in the tar.gz
+        string cmd_rm_raw;
+        cmd_rm_raw = "rm -rf " + dir + " " + photoelectron_file + " " + dir + "_absorption.pdf";
+        if(degrad_output == 1){
+            cmd_rm_raw = cmd_rm_raw + " " + dir + "_degrad";
+        }
+        err = exec(cmd_rm_raw.c_str());
+    }
 }

@@ -72,7 +72,7 @@ make
 Now the tool is ready to be used. It has several arguments that define the detector
 parameters. The tool can be stated with:
 ```
-./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events> <degrad_output>
+./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events> <degrad_output> <tar>
 ```
 These are the parameters:
 - `path` defines the path to a gas file which is used for the drift of the
@@ -109,6 +109,7 @@ These are the parameters:
    distribution for the simulation of the gas gain
 - `events` defines the number of events that should be simulated
 - `degrad_output` defines if degrad in and out files are stored (1) or not (0)
+- `tar` defines if the events are packed into a tar.gz file (1) or not(0)
 
 ## Gases
 The following gases are supported:
