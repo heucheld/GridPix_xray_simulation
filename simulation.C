@@ -116,7 +116,7 @@ void runfile(string begindate, string begintime, int runnumber, string dir){
     f << "\t shutter time 200\n";
     f << "\t readout mode (0 = zero suppressed, 1 = complete matrix)    0\n\n";
     f << "Chip IDs:\n";
-    f << "\t FEC 0 Board 0 Chip 1: H1-W10\n";
+    f << "\t FEC 0 Board 0 Chip 1: H2-W10\n";
 }
 
 /**
@@ -575,7 +575,7 @@ int main(int argc, char *argv[]){
             }
         }
 
-        cout << "GARIFELD: photon " << event << endl;
+        cout << "GARFIELD: photon " << event << endl;
 
         TF1 angles = TF1("angles","[0]*TMath::Cos(x) * TMath::Cos(x)+[1]", 0, 2*TMath::Pi());
         angles.SetParameter(0, 1 - (1 - polarization) / (1 + polarization));
@@ -759,4 +759,9 @@ int main(int argc, char *argv[]){
             break;
         }
     }
+
+    // Write the runfile
+    runfile(dateb, timeb, job, dir);
+    cout << "GARFIELD: Simulation completed" << endl;
+
 }
