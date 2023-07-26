@@ -295,7 +295,7 @@ void get_absoption_curve(string filename, double energy, Sensor& sensor, double 
  * the gas pressure and temperature, the electric field.
  * It is written into a file with a given filename
  */
-void write_degrad_file(double energy, int gas1, int gas2, double percentage1, double percentage2, double temperature, double pressure, double efield, string filename){
+int write_degrad_file(double energy, int gas1, int gas2, double percentage1, double percentage2, double temperature, double pressure, double efield, string filename){
     // Get a random seed for degrad
     int seed = degrad_random.Integer(1000000);
     //cout << seed << endl;
@@ -332,6 +332,8 @@ void write_degrad_file(double energy, int gas1, int gas2, double percentage1, do
     infile << "\n";
     infile << "\n";
     infile.close();
+
+    return seed;
 }
 
 /**
@@ -582,7 +584,8 @@ int main(int argc, char *argv[]){
         string in_file = degrad_dir + filename + ".in";
 
         // Create the degrad in file and run degrad with it
-        write_degrad_file(energy, get_gas_parameter(gas1), get_gas_parameter(gas2), percentage1, percentage2, temperature, pressure, efield, in_file);
+        int degrad_seed;
+        degrad_seed = write_degrad_file(energy, get_gas_parameter(gas1), get_gas_parameter(gas2), percentage1, percentage2, temperature, pressure, efield, in_file);
         run_degrad(in_file);
         cout << "DEGRAD: Finished photoelectron track" << endl;
 
@@ -642,7 +645,7 @@ int main(int argc, char *argv[]){
 
         // Store the truth information of the event in a file
         string photoelectron_file = "run_" + fixedLength(job) + "_" + dateb + "_" + timeb + "_photoelectrons.txt";
-        string photoelectron_content = to_string(event) + "\t" + to_string(energy) + "\t" + to_string(angle) + "\t" + to_string(position) + "\t" + to_string(nclus);
+        string photoelectron_content = to_string(event) + "\t" + to_string(energy) + "\t" + to_string(angle) + "\t" + to_string(position) + "\t" + to_string(nclus) + "\t" + to_string(degrad_seed);
         write_text_to_position_file(photoelectron_file.c_str(), photoelectron_content.c_str());
 
         // For the gas gain the gain is drawn from a polya distribution
