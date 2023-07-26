@@ -461,41 +461,42 @@ int main(int argc, char *argv[]){
     bool create_gasfile = true;
     string gasfile;
 
-    if (argc < 19){
-        cout << "There are missing some arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events>" << endl;
+    if (argc < 20){
+        cout << "There are missing some arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events> <degrad_output>" << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
-    if (argc == 20){
+    if (argc == 21){
         gasfile = argv[1];
         create_gasfile = false;
     }
     else{
         create_gasfile = true;
     }
-    int job = atoi(argv[argc - 18]);
-    int absorption_approach = atoi(argv[argc - 17]);
-    int simulation_approach = atoi(argv[argc - 16]);
-    double length = atof(argv[argc - 15]);
-    double energy = atof(argv[argc - 14]);
-    string gas1 = argv[argc - 13];
-    string gas2 = argv[argc - 12];
-    double percentage1 = atof(argv[argc - 11]);
-    double percentage2 = atof(argv[argc - 10]);
-    double temperature = atof(argv[argc - 9]);
-    double pressure = atof(argv[argc - 8]);
-    double efield = atof(argv[argc - 7]);
-    double polarization = atof(argv[argc - 6]);
-    double angle_offset = atof(argv[argc - 5]);
-    double amplification_scaling = atof(argv[argc - 4]);
-    double amplification_gain = atof(argv[argc - 3]);
-    double amplification_width = atof(argv[argc - 2]);
-    int nEvents = atoi(argv[argc - 1]);
+    int job = atoi(argv[argc - 19]);
+    int absorption_approach = atoi(argv[argc - 18]);
+    int simulation_approach = atoi(argv[argc - 17]);
+    double length = atof(argv[argc - 16]);
+    double energy = atof(argv[argc - 15]);
+    string gas1 = argv[argc - 14];
+    string gas2 = argv[argc - 13];
+    double percentage1 = atof(argv[argc - 12]);
+    double percentage2 = atof(argv[argc - 11]);
+    double temperature = atof(argv[argc - 10]);
+    double pressure = atof(argv[argc - 9]);
+    double efield = atof(argv[argc - 8]);
+    double polarization = atof(argv[argc - 7]);
+    double angle_offset = atof(argv[argc - 6]);
+    double amplification_scaling = atof(argv[argc - 5]);
+    double amplification_gain = atof(argv[argc - 4]);
+    double amplification_width = atof(argv[argc - 3]);
+    int nEvents = atoi(argv[argc - 2]);
+    int degrad_output = atoi(argv[argc - 1]);
 
     if (create_gasfile){
         cout << "MAGBOLTZ: Generate gasfile" << endl;
         gasfile = gas1 + "_" + gas2 + "_" + to_string(int(percentage1)) + "_" + to_string(int(percentage2)) + "_" + to_string(int(pressure)) + "torr_" + to_string(int(temperature)) + "C_" + to_string(int(efield)) + "Vcm.gas";
-        generateGasFile(gasfile, gas1, percentage1, gas2, percentage2, pressure, 273.15+temperature, 20, efield-300, efield+300, 41, 0,0,1);
+        generateGasFile(gasfile, gas1, percentage1, gas2, percentage2, pressure, 273.15+temperature, 20, efield, efield, 1, 0,0,1);
     }
 
     // Create the needed folders
@@ -503,7 +504,9 @@ int main(int argc, char *argv[]){
     mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     makeconfig(dir);
     string degrad_dir = "Run_" + fixedLength(job) + "_" + date() + "_" + time() + "_degrad";
-    mkdir(degrad_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if(degrad_output == 1){
+        mkdir(degrad_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    }
 
     // Make a gas medium.
     std::unique_ptr<MediumMagboltz> gas = std::make_unique<MediumMagboltz>();
@@ -515,11 +518,11 @@ int main(int argc, char *argv[]){
 
     // Get diffusion parameters and drift velocity
     double el_Tdiff = 0.0;
-    gas->GetElectronTransverseDiffusion(20, 0, 0, el_Tdiff);
+    gas->GetElectronTransverseDiffusion(0, 0, 0, el_Tdiff);
     double el_Ldiff = 0.0;
-    gas->GetElectronLongitudinalDiffusion(20, 0, 0, el_Ldiff);
+    gas->GetElectronLongitudinalDiffusion(0, 0, 0, el_Ldiff);
     double el_vel = 0.0;
-    gas->GetElectronVelocityE(20, 0, 0, el_vel);
+    gas->GetElectronVelocityE(0, 0, 0, el_vel);
 
     // Create a cylinder in which the x-rays can convert.
     // Diameter [cm]
@@ -581,12 +584,24 @@ int main(int argc, char *argv[]){
 
         // Generate the filenames for the current event
         string filename = "/run_" + fixedLength(job) + "_data_" + fixedLength(event) + "_" + date() + "_" + time();
-        string in_file = degrad_dir + filename + ".in";
+        string in_file;
+        if(degrad_output == 1){
+            in_file = degrad_dir + filename + ".in";
+        }
+        else{
+            in_file = "degrad.in";
+        }
 
         // Create the degrad in file and run degrad with it
         int degrad_seed;
         degrad_seed = write_degrad_file(energy, get_gas_parameter(gas1), get_gas_parameter(gas2), percentage1, percentage2, temperature, pressure, efield, in_file);
         run_degrad(in_file);
+        if(degrad_output != 1){
+            string cmd_rm_in;
+            cmd_rm_in = "rm -f degrad.in";
+            string err = "";
+            err = exec(cmd_rm_in.c_str());
+        }
         cout << "DEGRAD: Finished photoelectron track" << endl;
 
         double position;
@@ -715,11 +730,11 @@ int main(int argc, char *argv[]){
 
         // Close the degrad output file and move it in the runfolder with a new name based on the eventnumber
         in.close();
-        string cmd_degrad_out = "cp DEGRAD.OUT " + degrad_dir + "/run_" + fixedLength(job) + "_data_" + fixedLength(event) + "_" + date() + "_" + time() + ".OUT";
-        //cout << cmd_degrad_out << endl;
-        string err = "";
-        err = exec(cmd_degrad_out.c_str());
-        //cout << cmd_degrad_out << ":\t" << err << endl; //Debug output
+        if(degrad_output == 1){
+            string cmd_degrad_out = "cp DEGRAD.OUT " + degrad_dir + "/run_" + fixedLength(job) + "_data_" + fixedLength(event) + "_" + date() + "_" + time() + ".OUT";
+            string err = "";
+            err = exec(cmd_degrad_out.c_str());
+        }
 
         cout << endl;
 
