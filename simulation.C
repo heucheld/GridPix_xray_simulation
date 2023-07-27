@@ -126,17 +126,17 @@ void runfile(string begindate, string begintime, int runnumber, string dir){
 void makeconfig(string dir){
     //threshold
     string file = dir + "//chip_1_board_0_fec_0_threshold.txt";
-    ifstream srce("config_vorlagen//chip_1_board_0_fec_0_threshold.txt", ios::binary);
+    ifstream srce("config_template//chip_1_board_0_fec_0_threshold.txt", ios::binary);
     ofstream dest(file, ios::binary);
     dest << srce.rdbuf();
     //matrix
     file = dir + "//chip_1_board_0_fec_0_matrix.txt";
-    srce = ifstream("config_vorlagen//chip_1_board_0_fec_0_matrix.txt", ios::binary);
+    srce = ifstream("config_template//chip_1_board_0_fec_0_matrix.txt", ios::binary);
     dest = ofstream(file, ios::binary);
     dest << srce.rdbuf();
     //fsr
     file = dir + "//chip_1_board_0_fec_0_fsr.txt";
-    srce = ifstream("config_vorlagen//chip_1_board_0_fec_0_fsr.txt", ios::binary);
+    srce = ifstream("config_template//chip_1_board_0_fec_0_fsr.txt", ios::binary);
     dest = ofstream(file, ios::binary);
     dest << srce.rdbuf();
 }
