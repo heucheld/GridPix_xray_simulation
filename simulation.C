@@ -273,6 +273,7 @@ void get_absoption_curve(string filename, double energy, Sensor& sensor, double 
     // Fit the histogram
     TF1 exp = TF1("fit","[0]*exp([1]*(x-[2]))", 0.3, 0.8*z0);
     exp.SetParLimits(1, 0, 10000);
+    exp.SetParameter(1, 1);
     absorption_points.Fit("fit", "R");
     string title = "Absorption curve - Efficiency = " + to_string(100*100000.0/total_photons) + " %";
     absorption_points.SetTitle(title.c_str());
