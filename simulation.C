@@ -772,7 +772,7 @@ int main(int argc, char *argv[]){
     if(tar == 1){
         cout << "Pack events into tar.gz" << endl;
         string cmd_tar;
-        cmd_tar = "tar -czf " + dir + ".tar.gz " + dir + " " + photoelectron_file + " " + dir + "_absorption.pdf";
+        cmd_tar = "tar -czf " + dir + ".tar.gz " + dir + " " + photoelectron_file + " " + dir + "_absorption.pdf " + gasfile;
         // Also pack degrad files if they were stored
         if(degrad_output == 1){
             cmd_tar = cmd_tar + " " + dir + "_degrad";
