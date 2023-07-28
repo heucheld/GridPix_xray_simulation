@@ -26,7 +26,7 @@ simulation. You can download the source code
 [here](https://degrad.web.cern.ch/degrad/) and you should use version 3.15 or
 newer. Degrad can be compiled with (for version 3.15)
 ```
-gfortran degrad-3.15.f
+gfortran -o degrad.run degrad-3.15.f
 ```
 Depending on the version of the compiler and degrad it can run into an error like this:
 ```
