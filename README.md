@@ -20,6 +20,9 @@ If you already have an installation of Garfield++ make sure that you use commit
 [57ffa3f9](https://gitlab.cern.ch/garfield/garfieldpp/-/commit/57ffa3f9814dd8325de6951320e36cf21d9b232a)
 or newer, as there was a bug in the photon transport before.
 
+If you are using [CVMFS](https://cvmfs-monitor-frontend.web.cern.ch/) you can
+find a compatible Garfield version in the [LCG 103 Release](https://lcginfo.cern.ch/release_packages/x86_64-centos9-gcc11-opt/103/).
+
 ### Degrad
 For Degrad you need to put an executable of it into the folder where you run the
 simulation. You can download the source code
