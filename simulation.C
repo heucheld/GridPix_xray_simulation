@@ -332,12 +332,12 @@ int write_degrad_file(double energy, int gas1, int gas2, double percentage1, dou
     ofstream infile;
     infile.open(filename);
     if(percentage1 == 100. || percentage2 == 100.){
-        infile << "         1        10         3        -1" << fixed << setprecision(0) << space_strings[0] << parameters[0] << setprecision(3) << space_strings[1] << parameters[1] << "     2.0000   100.0000\n";
+        infile << "         1         1         3        -1" << fixed << setprecision(0) << space_strings[0] << parameters[0] << setprecision(3) << space_strings[1] << parameters[1] << "     2.0000   100.0000\n";
         infile << fixed << setprecision(0) << space_strings[2] << parameters[2] << "   99   99   99   99   99\n";
         infile << fixed << setprecision(3) << space_strings[4] << parameters[4] << "     0.000     0.000     0.000     0.000     0.000" << space_strings[6] << parameters[6] << space_strings[7] << parameters[7] << "\n";
     }
     else{
-        infile << "         2        10         3        -1" << fixed << setprecision(0) << space_strings[0] << parameters[0] << setprecision(3) << space_strings[1] << parameters[1] << "     2.0000   100.0000\n";
+        infile << "         2         1         3        -1" << fixed << setprecision(0) << space_strings[0] << parameters[0] << setprecision(3) << space_strings[1] << parameters[1] << "     2.0000   100.0000\n";
         infile << fixed << setprecision(0) << space_strings[2] << parameters[2] << space_strings[3] << parameters[3] << "   99   99   99   99\n";
         infile << fixed << setprecision(3) << space_strings[4] << parameters[4] << space_strings[5] << parameters[5] << "     0.000     0.000     0.000     0.000" << space_strings[6] << parameters[6] << space_strings[7] << parameters[7] << "\n";
     }
