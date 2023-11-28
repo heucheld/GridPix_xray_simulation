@@ -6,3 +6,10 @@
 
 #Degrad
 degrad.run
+
+#DS_Store
+.DS_Store
+._.DS_Store
+
+#Gas Files
+/build/gas_files
