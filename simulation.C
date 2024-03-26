@@ -523,8 +523,11 @@ int main(int argc, char *argv[]){
         mkdir(degrad_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
 
-    // Create the filename for the photoelectrons file
+    // Create the filenames for the photoelectrons origin, Degrad, post-drift secondary electrons and pixel level secondary electrons truth files
     string photoelectron_file = "run_" + fixedLength(job) + "_" + dateb + "_" + timeb + "_photoelectrons.txt";
+    string degrad_electrons_file = "run_" + fixedLength(job) + "_" + dateb + "_" + timeb + "_degrad_electrons.csv";
+    string post_drift_electrons_file = "run_" + fixedLength(job) + "_" + dateb + "_" + timeb + "_post_drift_electrons.csv";
+    string pixel_electrons_file = "run_" + fixedLength(job) + "_" + dateb + "_" + timeb + "_pixel_electrons.csv";
 
     // Make a gas medium.
     std::unique_ptr<MediumMagboltz> gas = std::make_unique<MediumMagboltz>();
@@ -581,8 +584,20 @@ int main(int argc, char *argv[]){
         cout << "GARFIELD: Absorption curve simulation finished" << endl;
     }
 
+
+    // Add headers to files
+    string header_degrad = string("Event") + "\t" + "x_n [µm]" + "\t" + "y_n [µm]" + "\t" + "z_n [µm]" + "\t" + "t_n [ps]";
+    string header_post_drift = string("Event") + "\t" + "x_n [cm]" + "\t" + "y_n [cm]" + "\t" + "z_n [cm]" + "\t" + "t_n [ps]";
+    string header_pixel = string("Event") + "\t" + "x_n [pixel]" + "\t" + "y_n [pixel]" + "\t" + "toa_n [clock-cycle 40 MHz]" + "\t" + "ftoa_n [clock-cycle 640 MHz]"+  "\t" + "amplitude_n [#e-]";
+    write_text_to_position_file(degrad_electrons_file.c_str(), header_degrad.c_str());
+    write_text_to_position_file(post_drift_electrons_file.c_str(), header_post_drift.c_str());
+    write_text_to_position_file(pixel_electrons_file.c_str(), header_pixel.c_str());
+
+
     int event = 0;
     int photoelectrons = 0;
+
+    // Event loop
     while (true){
         int number = 0; //of activated pixels
 
@@ -686,13 +701,23 @@ int main(int argc, char *argv[]){
         polya.SetParameter(1, amplification_gain); //gain
         polya.SetParameter(2, amplification_width); //width
 
+
+        // Initiate string for degrad, post-drift and pixel information secondary electrons
+        string degrad_electrons_content = to_string(event);
+        string post_drift_electrons_content = to_string(event);
+        string pixel_electrons_content = to_string(event);
+
         // Iterate over all secondary electrons of the photoelectron track and drift them to the readout
         for (Int_t iclus = 0; iclus < nclus; iclus++){
             cout << "\rGARFIELD: Electron: " << iclus + 1 << " of " << nclus << flush;
             // read in the data
             in >> x >> y >> z >> t >> n1 >> n2 >> n3;
             nlines++;
-            
+
+            // Add specific secondary electron degrad info to event string for degrad_electrons_content
+            string x_y_z_t_temp = "\t" + to_string(x) + "\t" + to_string(y) + "\t" + to_string(z) + "\t" + to_string(t);
+            degrad_electrons_content += x_y_z_t_temp;
+
             // Rotate secondary electron start coordinates by defined angle
             double rot_x = x * TMath::Cos(angle) - y * TMath::Sin(angle);
             double rot_y = x * TMath::Sin(angle) + y * TMath::Cos(angle);
@@ -720,17 +745,23 @@ int main(int argc, char *argv[]){
                 // Get end point parameters for the electron
                 x2 = (rot_x + a)/ 10000.;
                 y2 = (rot_y + b)/ 10000.;
+                z2 = 0.0; // Defined anode position
                 t2 = (position + (z / 10000.))/el_vel; // Preliminary - will also depend on longitudinal diffusion
             }
+
             else{
                 return -1;
             }
+
+            // Add specific secondary electron post-drift info to event string for post_drift_electrons_content
+            string x2_y2_z2_t2_temp = "\t" + to_string(x2) + "\t" + to_string(y2) + "\t" + to_string(z2) + "\t" + to_string(t2);
+            post_drift_electrons_content += x2_y2_z2_t2_temp;
 
             // Draw a gas gain from the polya distribution
             double amp = polya.GetRandom();
             //cout << "\t z_start: " << position + (z / 10000.) << "\t z_stop: " << z2 << "\t electrons: " << amp << "\t status: " << status << endl; // Debug output
 
-            // Get the pixelcoordinates oh the electron
+            // Get the pixelcoordinates of the electron
             int posx = floor((x2 + 0.7) / pixelsize);
             int posy = floor((y2 + 0.7) / pixelsize);
             int toa = floor(t2 / 25); // 40 MHz clock
@@ -743,6 +774,10 @@ int main(int argc, char *argv[]){
             }
             // Store the hit and the gain in a matrix
             hits[posx][posy] += (int)amp;
+
+            // Add specific secondary electron pixel info to event string for degrad_electrons_content
+            string posx_posy_toa_ftoa_amp_temp = "\t" + to_string(posx) + "\t" + to_string(posy) + "\t" + to_string(toa) + "\t" + to_string(ftoa) + "\t" + to_string(amp);
+            pixel_electrons_content += posx_posy_toa_ftoa_amp_temp;
         }
 
         // Close the degrad output file and move it in the runfolder with a new name based on the eventnumber
@@ -767,6 +802,11 @@ int main(int argc, char *argv[]){
             }
         }
         f.close();
+
+        // Store the degrad, post-drift and pixel secondary electrons information of the event
+        write_text_to_position_file(degrad_electrons_file.c_str(), degrad_electrons_content.c_str());
+        write_text_to_position_file(post_drift_electrons_file.c_str(), post_drift_electrons_content.c_str());
+        write_text_to_position_file(pixel_electrons_file.c_str(), pixel_electrons_content.c_str());
 
         event++;
         photoelectrons++;
