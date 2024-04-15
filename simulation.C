@@ -475,44 +475,45 @@ int main(int argc, char *argv[]){
     bool create_gasfile = true;
     string gasfile;
 
-    if (argc < 22){
-        cout << "There are missing some arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events> <degrad_output> <tar> <events_in>" << endl;
+    if (argc < 23){
+        cout << "There are missing some arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events> <degrad_output> <tar> <events_in> <sec_electrons_in>" << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
-    if (argc == 22){
+    if (argc == 23){
         create_gasfile = true;
     }
-    if (argc == 23){
+    if (argc == 24){
         gasfile = argv[1];
         create_gasfile = false;
     }
     else {
-        cout << "There are too many arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events> <degrad_output> <tar> <events_in>" << endl;
+        cout << "There are too many arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events> <degrad_output> <tar> <events_in> <sec_electrons_in>"  << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
-    int job = atoi(argv[argc - 21]);
-    int absorption_approach = atoi(argv[argc - 20]);
-    int simulation_approach = atoi(argv[argc - 19]);
-    double length = atof(argv[argc - 18]);
-    double energy = atof(argv[argc - 17]);
-    string gas1 = argv[argc - 16];
-    string gas2 = argv[argc - 15];
-    double percentage1 = atof(argv[argc - 14]);
-    double percentage2 = atof(argv[argc - 13]);
-    double temperature = atof(argv[argc - 12]);
-    double pressure = atof(argv[argc - 11]);
-    double efield = atof(argv[argc - 10]);
-    double polarization = atof(argv[argc - 9]);
-    double angle_offset = atof(argv[argc - 8]);
-    double amplification_scaling = atof(argv[argc - 7]);
-    double amplification_gain = atof(argv[argc - 6]);
-    double amplification_width = atof(argv[argc - 5]);
-    int nEvents = atoi(argv[argc - 4]);
-    int degrad_output = atoi(argv[argc - 3]);
-    int tar = atoi(argv[argc - 2]);
-    int event_in = atoi(argv[argc - 1]); // Flag to activate event rejection for 2nd electrons outside of gas volume. Event is replaced by new one to get desired number of total events.
+    int job = atoi(argv[argc - 22]);
+    int absorption_approach = atoi(argv[argc - 21]);
+    int simulation_approach = atoi(argv[argc - 20]);
+    double length = atof(argv[argc - 19]);
+    double energy = atof(argv[argc - 18]);
+    string gas1 = argv[argc - 17];
+    string gas2 = argv[argc - 16];
+    double percentage1 = atof(argv[argc - 15]);
+    double percentage2 = atof(argv[argc - 14]);
+    double temperature = atof(argv[argc - 13]);
+    double pressure = atof(argv[argc - 12]);
+    double efield = atof(argv[argc - 11]);
+    double polarization = atof(argv[argc - 10]);
+    double angle_offset = atof(argv[argc - 9]);
+    double amplification_scaling = atof(argv[argc - 8]);
+    double amplification_gain = atof(argv[argc - 7]);
+    double amplification_width = atof(argv[argc - 6]);
+    int nEvents = atoi(argv[argc - 5]);
+    int degrad_output = atoi(argv[argc - 4]);
+    int tar = atoi(argv[argc - 3]);
+    int event_in = atoi(argv[argc - 2]); // Flag for event rejection for 2nd electrons outside of gas volume. Assumption: non-physical event. Event is replaced by new one to get desired number of total events.
+    int sec_electrons_in = atoi(argv[argc - 1]); // Flag for subsequent 2nd electron rejection, as soon as first one is outside of gas volume above/below cathode/anode. Assumption: photoelectron absorbed, no further 2nd electrons. Condition is set after summation of photoeffect depth z and degrad output z.
 
     if (create_gasfile){
         cout << "MAGBOLTZ: Generate gasfile" << endl;
@@ -602,6 +603,7 @@ int main(int argc, char *argv[]){
 
     int event = 0;
     int outside_events = 0;
+    int z_outside_electrons_events = 0;
     int photoelectrons = 0;
     bool skip_event = false;
 
@@ -710,7 +712,8 @@ int main(int argc, char *argv[]){
         string pixel_electrons_content = to_string(event);
 
         // Iterate over all secondary electrons of the photoelectron track and drift them to the readout
-        for (Int_t iclus = 0; iclus < nclus; iclus++){
+        Int_t iclus;
+        for (iclus = 0; iclus < nclus; iclus++){
             cout << "\rGARFIELD: Electron: " << iclus + 1 << " of " << nclus << flush;
             // read in the data
             in >> x >> y >> z >> t >> n1 >> n2 >> n3;
@@ -720,10 +723,16 @@ int main(int argc, char *argv[]){
             if (event_in == 1 && (abs(x)/10000. > 0.5 * diameter || abs(y)/10000. > 0.5 * diameter || abs(z)/10000. > length)){
               outside_events++;
               skip_event = true;
-              cout << "\nA secondary electron is found outside the defined cylinder in event " << event << ". Continue with next event." << endl;
+              cout << "\nA secondary electron is outside the defined gas cylinder (DEGRAD) for event " << event << ". Try next event." << endl;
               break;
             }
 
+            //Check if one of the secondary electron positions is outside the anode (z=0) or cathode (z = length) in z. If yes, reject secondary electron and stop loop.
+            if (sec_electrons_in == 1 && ((position + (z / 10000.)) > length || (position + (z / 10000.)) < 0.0)){
+              z_outside_electrons_events++;
+              cout << "\nA secondary electron is outside the anode or cathode in z (DEGRAD + photoeffect depth) for event " << event << ". Stop secondary electron loop here." << endl;
+              break;
+            }
 
             // Add specific secondary electron degrad info to event string for degrad_electrons_content
             string x_y_z_t_temp = "\t" + to_string(x) + "\t" + to_string(y) + "\t" + to_string(z) + "\t" + to_string(t);
@@ -786,7 +795,7 @@ int main(int argc, char *argv[]){
             // Store the hit and the gain in a matrix
             hits[posx][posy] += (int)amp;
 
-            // Add specific secondary electron pixel info to event string for degrad_electrons_content
+            // Add specific secondary electron pixel info to event string for pixel_electrons_content
             string posx_posy_toa_ftoa_amp_temp = "\t" + to_string(posx) + "\t" + to_string(posy) + "\t" + to_string(toa) + "\t" + to_string(ftoa) + "\t" + to_string(amp);
             pixel_electrons_content += posx_posy_toa_ftoa_amp_temp;
         }
@@ -798,7 +807,7 @@ int main(int argc, char *argv[]){
         }
 
         // Store the truth information of the event in a file
-        string photoelectron_content = to_string(event) + "\t" + to_string(energy) + "\t" + to_string(angle) + "\t" + to_string(position) + "\t" + to_string(nclus) + "\t" + to_string(degrad_seed);
+        string photoelectron_content = to_string(event) + "\t" + to_string(energy) + "\t" + to_string(angle) + "\t" + to_string(position) + "\t" + to_string(iclus) + "\t" + to_string(degrad_seed);
         write_text_to_position_file(photoelectron_file.c_str(), photoelectron_content.c_str());
 
         // Close the degrad output file and move it in the runfolder with a new name based on the eventnumber
@@ -849,6 +858,14 @@ int main(int argc, char *argv[]){
         string rejection_content = rejection_content_text + to_string(outside_events);
         write_text_to_position_file(photoelectron_file.c_str(), rejection_content.c_str());
         cout << "Rejected events due to secondary electrons outside of defined gas volume: " << outside_events << endl;
+    }
+
+    // If secondary electron outside flag true, write number of affected events at the end of photoelectrons.txt file
+    if (sec_electrons_in == 1){
+        string z_out_content_text = "Affected events: Secondary electrons outside of anode or cathode in Z: ";
+        string z_out_content = z_out_content_text + to_string(z_outside_electrons_events);
+        write_text_to_position_file(photoelectron_file.c_str(), z_out_content.c_str());
+        cout << "Affected events due to secondary electrons outside of anode/cathode in Z: " << z_outside_electrons_events << endl;
     }
 
     // Write the runfile
