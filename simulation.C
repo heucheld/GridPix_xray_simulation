@@ -487,11 +487,12 @@ int main(int argc, char *argv[]){
         gasfile = argv[1];
         create_gasfile = false;
     }
-    else {
+    if (argc > 24){
         cout << "There are too many arguments. The command is ./simulation <path> <job> <absorption> <approach> <length> <energy> <gas1> <gas2> <percentage1> <percentage2> <temperature> <pressure> <field> <polarization> <angle_offset> <amp_scaling> <amp_gain> <amp_width> <events> <degrad_output> <tar> <events_in> <sec_electrons_in>"  << endl;
         cout << "If no gasfile is provided a new one is generated (takes a couple of hours)" << endl;
         return 1;
     }
+
     int job = atoi(argv[argc - 22]);
     int absorption_approach = atoi(argv[argc - 21]);
     int simulation_approach = atoi(argv[argc - 20]);
